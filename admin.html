@@ -1,0 +1,2189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nuevo Impacto · Imprenta, textil y rotulación en Tomelloso</title>
+<meta name="description" content="Tarjetas, flyers, camisetas serigrafiadas, vinilos, rótulos y regalo publicitario. Producción propia en Tomelloso.">
+<meta name="theme-color" content="#0E1116">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%2377002A%22/%3E%3Cpath%20d%3D%22M32%2012l5.6%2013.2L52%2026.4l-10.8%209.3%203.2%2014L32%2042.3%2019.6%2049.7l3.2-14L12%2026.4l14.4-1.2z%22%20fill%3D%22%23fff%22/%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2231%22%20r%3D%224.4%22%20fill%3D%22%23FF0000%22/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   NUEVO IMPACTO — tienda + panel de administración
+   Un solo archivo. Datos en localStorage, sincronización
+   opcional con Firestore desde Admin › Ajustes › Firebase.
+   ============================================================ */
+:root{
+  --ink:#0E1116; --ink-70:#4A525C; --muted:#69717B;
+  --paper:#FFFFFF; --smoke:#F2F3F5; --line:#E2E5E9;
+  --cyan:#00A0D8; --acc:#E5007E; --yellow:#FFD100;
+  --ok:#12855B; --warn:#B45309; --red:#C62828;
+  --r:10px; --maxw:1180px;
+  --shadow:0 1px 2px rgba(14,17,22,.06), 0 8px 24px rgba(14,17,22,.07);
+  --f-display:'Archivo', system-ui, sans-serif;
+  --f-body:'Inter', system-ui, sans-serif;
+  --f-mono:'IBM Plex Mono', ui-monospace, monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth; scroll-padding-top:132px}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+img,svg{display:block;max-width:100%}
+button{font:inherit;color:inherit;cursor:pointer}
+a{color:inherit;text-decoration:none}
+input,select,textarea{font:inherit}
+:focus-visible{outline:3px solid var(--cyan);outline-offset:2px;border-radius:4px}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 20px}
+.mono{font-family:var(--f-mono)}
+h1,h2,h3,h4{font-family:var(--f-display);letter-spacing:-.025em;line-height:1.08;margin:0}
+h2{font-size:clamp(26px,3.4vw,40px);font-weight:800}
+h3{font-size:19px;font-weight:700;letter-spacing:-.015em}
+p{margin:0}
+.hidden{display:none !important}
+
+.regmark{width:14px;height:14px;flex:0 0 14px}
+.regmark circle{fill:none;stroke:currentColor;stroke-width:1.1}
+.regmark line{stroke:currentColor;stroke-width:1.1}
+.cmyk-bar{display:flex;height:4px;width:100%}
+.cmyk-bar i{flex:1}
+.cmyk-bar i:nth-child(1){background:var(--cyan)}
+.cmyk-bar i:nth-child(2){background:var(--acc)}
+.cmyk-bar i:nth-child(3){background:var(--yellow)}
+.cmyk-bar i:nth-child(4){background:var(--ink)}
+
+/* ---------------- logotipo ---------------- */
+.ni-logo{display:inline-block;line-height:0}
+.ni-logo svg{height:var(--h,44px);width:auto;display:block}
+.ni-logo .lg-ink{fill:#0E1116}
+.ni-logo .lg-halo{fill:#FFFFFF;stroke:#FFFFFF}
+.ni-logo .lg-halo-n,.ni-logo .lg-halon{fill:#FFFFFF;stroke:#FFFFFF}
+.ni-logo .lg-borde{fill:none;stroke:#77002A}
+.ni-logo .lg-red{fill:#FF0000}
+.ni-logo.inv .lg-ink{fill:#FFFFFF}
+.ni-logo.inv .lg-halo{fill:#0E1116;stroke:#0E1116}
+.ni-logo.inv .lg-borde{stroke:transparent}
+#logo-tpl{display:none}
+
+/* ---------------- header ---------------- */
+.topbar{background:var(--ink);color:#EDEFF2;font-size:12.5px}
+.topbar .wrap{display:flex;gap:20px;align-items:center;justify-content:space-between;height:34px}
+.topbar-links{display:flex;gap:18px;align-items:center}
+.topbar .tag{display:flex;gap:7px;align-items:center;color:#C9CFD6}
+@media(max-width:720px){.hide-s{display:none}}
+header.site{position:sticky;top:0;z-index:60;background:var(--paper);border-bottom:1px solid var(--line)}
+.headmain{display:flex;align-items:center;gap:22px;height:74px}
+.brand{display:flex;align-items:center;gap:11px;flex:0 0 auto}
+.brand .mk{width:38px;height:38px;border-radius:9px;background:var(--ink);display:grid;place-items:center;color:#fff}
+.brand .nm{font-family:var(--f-display);font-weight:800;font-size:19px;letter-spacing:-.04em;line-height:1}
+.brand .nm small{display:block;font-family:var(--f-mono);font-weight:500;font-size:9.5px;letter-spacing:.16em;color:var(--muted);margin-top:3px}
+.searchbox{flex:1;display:flex;align-items:center;gap:9px;border:1.5px solid var(--line);border-radius:var(--r);padding:0 13px;height:44px;background:var(--smoke)}
+.searchbox:focus-within{border-color:var(--ink);background:#fff}
+.searchbox input{border:0;background:none;outline:0;width:100%;font-size:15px}
+.headacts{display:flex;align-items:center;gap:8px}
+.iconbtn{display:flex;align-items:center;gap:8px;border:1.5px solid var(--line);background:#fff;border-radius:var(--r);height:44px;padding:0 14px;font-size:14px;font-weight:600}
+.iconbtn:hover{border-color:var(--ink)}
+.iconbtn .count{background:var(--acc);color:#fff;font-family:var(--f-mono);font-size:11px;font-weight:600;min-width:19px;height:19px;border-radius:10px;display:grid;place-items:center;padding:0 5px}
+nav.cats{border-top:1px solid var(--line);background:#fff}
+nav.cats .wrap{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+nav.cats .wrap::-webkit-scrollbar{display:none}
+nav.cats button{background:none;border:0;padding:13px 12px;font-size:14.5px;font-weight:500;white-space:nowrap;border-bottom:3px solid transparent;color:var(--ink-70)}
+nav.cats button:hover{color:var(--ink)}
+nav.cats button[aria-pressed="true"]{color:var(--ink);font-weight:600;border-bottom-color:var(--acc)}
+@media(max-width:860px){.headmain{height:auto;padding:12px 0;flex-wrap:wrap;gap:12px}.searchbox{order:3;flex-basis:100%}html{scroll-padding-top:180px}}
+
+/* ---------------- hero ---------------- */
+.hero{border-bottom:1px solid var(--line);background:linear-gradient(180deg,#fff 0%,var(--smoke) 100%)}
+.hero .wrap{display:grid;grid-template-columns:1.15fr .85fr;gap:52px;align-items:center;padding:56px 20px}
+.kicker{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:9px;margin-bottom:20px}
+.hero h1{font-size:clamp(38px,5.6vw,62px);font-weight:800;letter-spacing:-.04em}
+.reg-stack{position:relative;display:inline-block}
+.lyr{display:block}
+.lyr.abs{position:absolute;inset:0;mix-blend-mode:multiply;pointer-events:none}
+.lyr-c{color:var(--cyan)}.lyr-m{color:var(--acc)}.lyr-y{color:var(--yellow)}
+@media(prefers-reduced-motion:no-preference){
+  .lyr-c{animation:reg-c .9s cubic-bezier(.2,.8,.25,1) both}
+  .lyr-m{animation:reg-m .9s cubic-bezier(.2,.8,.25,1) .06s both}
+  .lyr-y{animation:reg-y .9s cubic-bezier(.2,.8,.25,1) .12s both}
+}
+@keyframes reg-c{from{transform:translate(-9px,4px)}to{transform:translate(0,0)}}
+@keyframes reg-m{from{transform:translate(7px,-5px)}to{transform:translate(0,0)}}
+@keyframes reg-y{from{transform:translate(3px,7px)}to{transform:translate(0,0)}}
+.hero p.lead{margin-top:20px;font-size:17.5px;color:var(--ink-70);max-width:47ch}
+.hero-cta{display:flex;gap:12px;margin-top:28px;flex-wrap:wrap}
+.btn{border:1.5px solid var(--ink);background:var(--ink);color:#fff;border-radius:var(--r);padding:13px 22px;font-weight:600;font-size:15px;display:inline-flex;align-items:center;gap:9px;justify-content:center}
+.btn:hover{background:#000}
+.btn.alt{background:#fff;color:var(--ink)}
+.btn.alt:hover{background:var(--smoke)}
+.btn.pink{background:var(--acc);border-color:var(--acc)}
+.btn.pink:hover{filter:brightness(.9)}
+.btn.sm{padding:8px 14px;font-size:13.5px;border-radius:8px}
+.btn.ghost{background:none;border-color:var(--line);color:var(--ink)}
+.btn.ghost:hover{border-color:var(--ink);background:var(--smoke)}
+.btn.danger{background:var(--red);border-color:var(--red)}
+.btn.block{width:100%}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.ot{background:#fff;border:1.5px solid var(--ink);border-radius:14px;box-shadow:var(--shadow);overflow:hidden}
+.ot-head{display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-bottom:1px solid var(--line)}
+.ot-head .t{font-family:var(--f-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.ot-head .n{font-family:var(--f-mono);font-size:12.5px;font-weight:600}
+.ot-rows{padding:6px 16px 12px}
+.ot-row{display:flex;justify-content:space-between;gap:14px;padding:9px 0;border-bottom:1px dashed var(--line);font-size:13.5px}
+.ot-row:last-child{border-bottom:0}
+.ot-row .k{color:var(--muted);font-family:var(--f-mono);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase}
+.ot-row .v{font-weight:600;text-align:right}
+.ot-swatches{display:flex;gap:6px;padding:0 16px 16px}
+.ot-swatches i{height:34px;flex:1;border-radius:5px;position:relative}
+.ot-swatches i::after{content:attr(data-l);position:absolute;bottom:4px;left:6px;font-family:var(--f-mono);font-size:9.5px;color:rgba(255,255,255,.9)}
+.ot-foot{background:var(--ink);color:#fff;padding:11px 16px;display:flex;justify-content:space-between;align-items:center;font-size:13px}
+.ot-foot .st{display:flex;align-items:center;gap:8px;font-family:var(--f-mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--yellow);box-shadow:0 0 0 4px rgba(255,209,0,.2)}
+@media(max-width:900px){.hero .wrap{grid-template-columns:1fr;gap:36px;padding:40px 20px}}
+
+/* ---------------- ventajas / secciones ---------------- */
+.perks{border-bottom:1px solid var(--line)}
+.perks .wrap{display:grid;grid-template-columns:repeat(4,1fr)}
+.perk{padding:22px 24px 22px 0;display:flex;gap:12px;align-items:flex-start;border-right:1px solid var(--line)}
+.perk:last-child{border-right:0}
+.perk:not(:first-child){padding-left:24px}
+.perk b{display:block;font-size:14.5px}
+.perk span{font-size:13px;color:var(--muted)}
+@media(max-width:820px){.perks .wrap{grid-template-columns:1fr 1fr}.perk{border-right:0;border-bottom:1px solid var(--line);padding:16px 0!important}}
+section{padding:64px 0}
+.sec-head{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;margin-bottom:30px;flex-wrap:wrap}
+.sec-head p{color:var(--muted);margin-top:9px;max-width:56ch;font-size:15.5px}
+.eyebrow{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--acc);display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.cat-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+.cat-tile{border:1.5px solid var(--line);border-radius:var(--r);background:#fff;padding:18px 14px;text-align:left;transition:border-color .15s,transform .15s}
+.cat-tile:hover{border-color:var(--ink);transform:translateY(-2px)}
+.cat-tile .ico{height:40px;margin-bottom:14px}
+.cat-tile b{font-size:14.5px;display:block;line-height:1.25}
+.cat-tile span{font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+@media(max-width:980px){.cat-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:560px){.cat-grid{grid-template-columns:repeat(2,1fr)}}
+.prod-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+@media(max-width:1000px){.prod-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:760px){.prod-grid{grid-template-columns:repeat(2,1fr);gap:12px}}
+.card{border:1.5px solid var(--line);border-radius:var(--r);background:#fff;overflow:hidden;display:flex;flex-direction:column;text-align:left;transition:border-color .15s,box-shadow .15s}
+.card:hover{border-color:var(--ink);box-shadow:var(--shadow)}
+.card .thumb{aspect-ratio:4/3;background:var(--smoke);position:relative;display:grid;place-items:center;overflow:hidden;border-bottom:1px solid var(--line)}
+.card .thumb svg{width:64%;height:auto}
+.card .thumb img{width:100%;height:100%;object-fit:cover}
+.mb-left .art img{width:100%;height:100%;object-fit:cover;border-radius:9px}
+.cart-line .mini img{width:100%;height:100%;object-fit:cover;border-radius:7px}
+.tmini img{width:100%;height:100%;object-fit:cover;border-radius:6px}
+.fotobox{border:1.5px dashed var(--line);border-radius:9px;padding:14px;text-align:center;font-size:13px;color:var(--muted)}
+.fotobox img{max-height:120px;width:auto;margin:0 auto 10px;border-radius:6px}
+.medidor{height:7px;background:var(--line);border-radius:4px;overflow:hidden;margin:10px 0 6px}
+.medidor i{display:block;height:100%;background:var(--ok)}
+.medidor i.lleno{background:var(--warn)}
+.medidor i.tope{background:var(--red)}
+.card .badge{position:absolute;top:10px;left:10px;background:var(--ink);color:#fff;font-family:var(--f-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:4px 8px;border-radius:5px}
+.card .body{padding:14px 15px 16px;display:flex;flex-direction:column;gap:5px;flex:1}
+.card .tech{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.card h3{font-size:16px}
+.card .desc{font-size:13.5px;color:var(--muted);line-height:1.45}
+.card .price{margin-top:auto;padding-top:12px;display:flex;align-items:baseline;gap:7px}
+.card .price b{font-family:var(--f-display);font-size:21px;font-weight:800;letter-spacing:-.03em}
+.card .price span{font-size:12.5px;color:var(--muted)}
+.empty{border:1.5px dashed var(--line);border-radius:var(--r);padding:44px 24px;text-align:center;color:var(--muted);grid-column:1/-1}
+.empty b{display:block;color:var(--ink);font-family:var(--f-display);font-size:19px;margin-bottom:6px}
+.proc{background:var(--ink);color:#fff}
+.proc h2{color:#fff}
+.proc .sec-head p{color:#A9B1BA}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#262C34;border:1px solid #262C34;border-radius:var(--r);overflow:hidden}
+.step{background:var(--ink);padding:26px 22px}
+.step .n{font-family:var(--f-mono);font-size:12px;color:var(--yellow);letter-spacing:.14em;margin-bottom:14px}
+.step b{font-family:var(--f-display);font-size:18px;letter-spacing:-.02em;display:block;margin-bottom:8px}
+.step p{font-size:14px;color:#A9B1BA}
+@media(max-width:820px){.steps{grid-template-columns:1fr}}
+.tecn{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.tecn div{border:1.5px solid var(--line);border-radius:var(--r);padding:18px}
+.tecn b{font-family:var(--f-display);font-size:16px;display:block;margin-bottom:6px}
+.tecn p{font-size:13.5px;color:var(--muted)}
+@media(max-width:960px){.tecn{grid-template-columns:repeat(2,1fr)}}
+.contact{background:var(--smoke);border-top:1px solid var(--line)}
+.contact .wrap{display:grid;grid-template-columns:1fr 1fr;gap:44px}
+.datos{display:grid;gap:2px;margin-top:22px}
+.dato{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:flex;justify-content:space-between;gap:16px;align-items:center}
+.dato .k{font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.dato .v{font-weight:600;text-align:right;font-size:14.5px}
+.form{background:#fff;border:1.5px solid var(--ink);border-radius:14px;padding:24px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px}
+.field input,.field textarea,.field select{width:100%;border:1.5px solid var(--line);border-radius:8px;padding:11px 13px;background:#fff;outline:0}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--ink)}
+.field textarea{min-height:96px;resize:vertical}
+.field .hint{font-size:12px;color:var(--muted);margin-top:5px;font-weight:400}
+@media(max-width:860px){.contact .wrap{grid-template-columns:1fr}}
+footer{background:var(--ink);color:#98A1AA;font-size:13.5px;padding:40px 0 28px}
+footer .cols{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:28px;padding-bottom:28px;border-bottom:1px solid #262C34}
+footer h4{color:#fff;font-size:13px;font-family:var(--f-mono);font-weight:500;letter-spacing:.14em;text-transform:uppercase;margin-bottom:12px}
+footer li{list-style:none;margin-bottom:7px}
+footer ul{padding:0;margin:0}
+footer a:hover{color:#fff}
+footer .legal{padding-top:20px;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;font-size:12.5px}
+@media(max-width:760px){footer .cols{grid-template-columns:1fr 1fr}}
+
+/* ---------------- menú principal ---------------- */
+nav.cats .sep{flex:1}
+nav.cats a.main{padding:13px 12px;font-size:14.5px;font-weight:500;color:var(--ink-70);white-space:nowrap;border-bottom:3px solid transparent}
+nav.cats a.main:hover{color:var(--ink);border-bottom-color:var(--line)}
+@media(max-width:980px){nav.cats a.main{color:var(--muted)}}
+
+/* ---------------- destacados ---------------- */
+.dest{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+@media(max-width:1000px){.dest{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.dest{grid-template-columns:1fr}}
+
+/* ---------------- sectores ---------------- */
+.sect{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.sect article{border:1.5px solid var(--line);border-radius:var(--r);padding:22px;background:#fff}
+.sect h3{font-size:17px;margin-bottom:8px}
+.sect p{font-size:14px;color:var(--muted);line-height:1.5}
+.sect .lista{margin-top:14px;padding-top:14px;border-top:1px dashed var(--line);font-family:var(--f-mono);font-size:11.5px;letter-spacing:.04em;color:var(--ink-70);line-height:1.7}
+@media(max-width:900px){.sect{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.sect{grid-template-columns:1fr}}
+
+/* ---------------- requisitos del arte ---------------- */
+.specs{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#262C34;border:1px solid #262C34;border-radius:var(--r);overflow:hidden;margin-top:20px}
+.specs div{background:var(--ink);padding:20px 22px}
+.specs .k{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--yellow);margin-bottom:8px}
+.specs b{font-family:var(--f-display);font-size:17px;display:block;margin-bottom:5px;color:#fff}
+.specs p{font-size:13.5px;color:#A9B1BA}
+@media(max-width:820px){.specs{grid-template-columns:1fr 1fr}}
+
+/* ---------------- preguntas ---------------- */
+.faq{max-width:820px}
+.faq details{border-bottom:1px solid var(--line)}
+.faq summary{cursor:pointer;list-style:none;padding:18px 44px 18px 0;font-family:var(--f-display);font-size:17px;font-weight:600;letter-spacing:-.015em;position:relative}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:'+';position:absolute;right:8px;top:50%;transform:translateY(-50%);font-family:var(--f-mono);font-size:21px;font-weight:400;color:var(--acc)}
+.faq details[open] summary::after{content:'−'}
+.faq summary:hover{color:var(--acc)}
+.faq .resp{padding:0 44px 20px 0;font-size:15px;color:var(--ink-70);line-height:1.6}
+
+/* ---------------- capas comunes ---------------- */
+.overlay{position:fixed;inset:0;background:rgba(14,17,22,.55);z-index:90;opacity:0;pointer-events:none;transition:opacity .2s}
+.overlay.on{opacity:1;pointer-events:auto}
+.modal{position:fixed;z-index:100;top:50%;left:50%;transform:translate(-50%,-48%) scale(.98);width:min(920px,calc(100vw - 32px));max-height:min(88vh,880px);background:#fff;border-radius:14px;box-shadow:0 24px 70px rgba(0,0,0,.32);overflow:hidden;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;display:flex;flex-direction:column}
+.modal.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+.modal.narrow{width:min(560px,calc(100vw - 32px))}
+.modal-head{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line)}
+.modal-body{overflow-y:auto}
+#modal .modal-body{display:grid;grid-template-columns:.85fr 1.15fr}
+.mb-left{padding:24px;border-right:1px solid var(--line);background:var(--smoke)}
+.mb-left .art{background:#fff;border:1px solid var(--line);border-radius:var(--r);aspect-ratio:1;display:grid;place-items:center;padding:26px}
+.mb-right{padding:24px}
+.closebtn{border:0;background:var(--smoke);width:34px;height:34px;border-radius:8px;display:grid;place-items:center;font-size:18px;line-height:1}
+.closebtn:hover{background:var(--line)}
+.opt-group{margin-bottom:22px}
+.opt-group>label.head{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;font-weight:700;margin-bottom:10px}
+.opt-group>label.head em{font-style:normal;font-family:var(--f-mono);font-size:11px;color:var(--muted);font-weight:500}
+.tiers{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}
+.tier{border:1.5px solid var(--line);border-radius:9px;padding:11px 12px;background:#fff;text-align:left;position:relative}
+.tier:hover{border-color:var(--ink-70)}
+.tier[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.tier .q{font-family:var(--f-display);font-weight:700;font-size:15px}
+.tier .u{font-family:var(--f-mono);font-size:11px;color:var(--muted);margin-top:3px}
+.tier .save{position:absolute;top:-8px;right:8px;background:var(--yellow);color:var(--ink);font-family:var(--f-mono);font-size:9.5px;font-weight:600;padding:2px 6px;border-radius:4px}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{border:1.5px solid var(--line);background:#fff;border-radius:99px;padding:8px 14px;font-size:13.5px;font-weight:500}
+.chip:hover{border-color:var(--ink-70)}
+.chip[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:#fff}
+.filebox{border:1.5px dashed var(--line);border-radius:9px;padding:16px;text-align:center;font-size:13.5px;color:var(--muted);display:block}
+.filebox b{display:block;color:var(--ink);font-size:14px;margin-bottom:4px}
+.filebox input{display:none}
+.filebox .pick{margin-top:9px;display:inline-block;border:1.5px solid var(--ink);border-radius:8px;padding:7px 14px;font-size:13px;font-weight:600;color:var(--ink);background:#fff}
+.pricebox{border-top:1px solid var(--line);padding:16px 24px;display:flex;justify-content:space-between;align-items:center;gap:16px;background:#fff;flex-wrap:wrap}
+.pricebox .amount{display:flex;align-items:baseline;gap:9px}
+.pricebox .amount b{font-family:var(--f-display);font-size:30px;font-weight:800;letter-spacing:-.03em}
+.pricebox .amount span{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+@media(max-width:780px){#modal .modal-body{grid-template-columns:1fr}.mb-left{border-right:0;border-bottom:1px solid var(--line)}.mb-left .art{aspect-ratio:16/9}}
+.drawer{position:fixed;top:0;right:0;height:100%;width:min(420px,100vw);background:#fff;z-index:100;transform:translateX(100%);transition:transform .25s cubic-bezier(.2,.8,.25,1);display:flex;flex-direction:column;box-shadow:-8px 0 40px rgba(0,0,0,.18)}
+.drawer.on{transform:none}
+.drawer-head{display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:1px solid var(--line)}
+.drawer-body{flex:1;overflow-y:auto;padding:16px 20px}
+.cart-line{display:flex;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
+.cart-line .mini{width:56px;height:56px;border-radius:8px;background:var(--smoke);border:1px solid var(--line);display:grid;place-items:center;flex:0 0 56px}
+.cart-line .mini svg{width:70%}
+.cart-line .info{flex:1;min-width:0}
+.cart-line .info b{font-size:14.5px;display:block;font-family:var(--f-display);letter-spacing:-.01em}
+.cart-line .info .spec{font-family:var(--f-mono);font-size:11px;color:var(--muted);margin-top:3px;line-height:1.5}
+.cart-line .side{text-align:right;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-end}
+.cart-line .side b{font-family:var(--f-display);font-size:15px}
+.linkbtn{background:none;border:0;padding:0;font-size:12px;color:var(--muted);text-decoration:underline}
+.linkbtn:hover{color:var(--acc)}
+.drawer-foot{border-top:1px solid var(--line);padding:18px 20px;background:#fff}
+.sumrow{display:flex;justify-content:space-between;font-size:14px;margin-bottom:7px;color:var(--ink-70)}
+.sumrow.total{font-family:var(--f-display);font-size:20px;font-weight:800;color:var(--ink);border-top:1px solid var(--line);padding-top:11px;margin-top:11px;letter-spacing:-.02em}
+.toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,90px);background:var(--ink);color:#fff;padding:13px 20px;border-radius:99px;font-size:14px;font-weight:500;z-index:200;opacity:0;transition:.25s;display:flex;align-items:center;gap:10px;max-width:90vw}
+.toast.on{transform:translate(-50%,0);opacity:1}
+.toast .dotok{width:8px;height:8px;border-radius:50%;background:var(--yellow);flex:0 0 8px}
+
+/* ============================================================
+   PANEL DE ADMINISTRACIÓN
+   ============================================================ */
+#admin{position:fixed;inset:0;z-index:150;background:var(--smoke);display:flex;flex-direction:column}
+.adm-top{background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 18px;height:56px;flex:0 0 56px}
+.adm-top .l{display:flex;align-items:center;gap:12px}
+.adm-top .badge{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;background:var(--acc);padding:3px 8px;border-radius:5px}
+.adm-top .r{display:flex;align-items:center;gap:10px;font-size:13px}
+.adm-top button{background:#1B222B;border:1px solid #2C343E;color:#fff;border-radius:8px;padding:8px 13px;font-size:13px;font-weight:600}
+.adm-top button:hover{background:#242C36}
+.sync{display:flex;align-items:center;gap:7px;font-family:var(--f-mono);font-size:11px;color:#9AA3AD}
+.sync i{width:7px;height:7px;border-radius:50%;background:#5A626B;display:block}
+.sync.on i{background:var(--ok);box-shadow:0 0 0 3px rgba(18,133,91,.25)}
+.adm-main{flex:1;display:grid;grid-template-columns:212px 1fr;min-height:0}
+.adm-nav{background:#fff;border-right:1px solid var(--line);padding:14px 10px;overflow-y:auto}
+.adm-nav button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:0;padding:10px 12px;border-radius:8px;font-size:14.5px;font-weight:500;color:var(--ink-70);margin-bottom:2px}
+.adm-nav button:hover{background:var(--smoke);color:var(--ink)}
+.adm-nav button[aria-pressed="true"]{background:var(--ink);color:#fff;font-weight:600}
+.adm-nav .grp{font-family:var(--f-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding:14px 12px 6px}
+.adm-body{overflow-y:auto;padding:26px 28px 60px}
+.adm-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:22px;flex-wrap:wrap}
+.adm-head h2{font-size:26px}
+.adm-head p{color:var(--muted);font-size:14px;margin-top:5px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:26px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px 18px}
+.kpi .k{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.kpi .v{font-family:var(--f-display);font-size:28px;font-weight:800;letter-spacing:-.03em;margin-top:6px}
+.kpi .s{font-size:12.5px;color:var(--muted)}
+@media(max-width:900px){.kpis{grid-template-columns:1fr 1fr}.adm-main{grid-template-columns:1fr}.adm-nav{display:flex;gap:6px;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line);padding:8px}.adm-nav button{width:auto;white-space:nowrap}.adm-nav .grp{display:none}}
+.panel{background:#fff;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-bottom:20px}
+.panel>h3{padding:15px 18px;border-bottom:1px solid var(--line);font-size:15px}
+.panel .pad{padding:18px}
+table.adm{width:100%;border-collapse:collapse;font-size:14px}
+table.adm th{text-align:left;font-family:var(--f-mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:500;padding:11px 14px;border-bottom:1px solid var(--line);background:#FAFBFC}
+table.adm td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
+table.adm tr:last-child td{border-bottom:0}
+table.adm tr:hover td{background:#FCFCFD}
+.tmini{width:36px;height:36px;border-radius:7px;background:var(--smoke);border:1px solid var(--line);display:grid;place-items:center}
+.tmini svg{width:76%}
+.pill{display:inline-flex;align-items:center;gap:6px;font-family:var(--f-mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:4px 9px;border-radius:99px;border:1px solid var(--line);background:#fff;white-space:nowrap}
+.pill.new{border-color:var(--acc);color:var(--acc)}
+.pill.quo{border-color:var(--cyan);color:#0079A3}
+.pill.pro{border-color:var(--warn);color:var(--warn)}
+.pill.don{border-color:var(--ok);color:var(--ok)}
+.pill.can{border-color:var(--line);color:var(--muted)}
+.pill.off{border-color:var(--line);color:var(--muted)}
+.pill.on{border-color:var(--ok);color:var(--ok)}
+.rowacts{display:flex;gap:6px;justify-content:flex-end}
+.ibtn{border:1px solid var(--line);background:#fff;border-radius:7px;padding:6px 10px;font-size:12.5px;font-weight:600}
+.ibtn:hover{border-color:var(--ink)}
+.ibtn.del:hover{border-color:var(--red);color:var(--red)}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+.toolbar input,.toolbar select{border:1.5px solid var(--line);border-radius:8px;padding:9px 12px;background:#fff;outline:0}
+.toolbar input:focus,.toolbar select:focus{border-color:var(--ink)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+@media(max-width:760px){.grid2,.grid3{grid-template-columns:1fr}}
+.tierrow{display:grid;grid-template-columns:1fr 1fr 1.4fr auto;gap:8px;margin-bottom:8px;align-items:center}
+.tierrow input{border:1.5px solid var(--line);border-radius:8px;padding:9px 11px;width:100%;outline:0}
+.chrow{display:grid;grid-template-columns:1.6fr .7fr .7fr auto;gap:8px;margin-bottom:8px;align-items:center}
+.chrow input{border:1.5px solid var(--line);border-radius:8px;padding:8px 10px;width:100%;outline:0;font-size:13.5px}
+.xbtn{border:1px solid var(--line);background:#fff;border-radius:7px;width:34px;height:34px;display:grid;place-items:center;font-size:15px;color:var(--muted)}
+.xbtn:hover{border-color:var(--red);color:var(--red)}
+.optcard{border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px;background:#FCFCFD}
+.optcard .oh{display:flex;gap:10px;align-items:center;margin-bottom:12px}
+.optcard .oh input{flex:1;border:1.5px solid var(--line);border-radius:8px;padding:8px 11px;font-weight:600;outline:0}
+.note{background:#FFF8E1;border:1px solid #F2E2A8;border-radius:var(--r);padding:13px 15px;font-size:13.5px;color:#6B5A16;margin-bottom:18px}
+.note b{display:block;margin-bottom:3px}
+.login{position:fixed;inset:0;z-index:160;background:var(--ink);display:grid;place-items:center;padding:20px}
+.login .box{background:#fff;border-radius:16px;padding:32px;width:min(380px,100%);text-align:center}
+.login .box .mk{width:46px;height:46px;border-radius:11px;background:var(--ink);display:grid;place-items:center;color:#fff;margin:0 auto 16px}
+.login input{width:100%;text-align:center;font-family:var(--f-mono);font-size:22px;letter-spacing:.4em;border:1.5px solid var(--line);border-radius:10px;padding:14px;margin:18px 0 12px;outline:0}
+.login input:focus{border-color:var(--ink)}
+@media print{.no-print{display:none!important}}
+</style>
+</head>
+<body>
+
+<!-- ===================== TIENDA ===================== -->
+<div id="tienda">
+
+<div class="topbar">
+  <div class="wrap">
+    <div class="tag">
+      <svg class="regmark" viewBox="0 0 14 14"><circle cx="7" cy="7" r="4.2"/><line x1="7" y1="0" x2="7" y2="14"/><line x1="0" y1="7" x2="14" y2="7"/></svg>
+      <span class="hide-s" id="t-claim"></span>
+    </div>
+    <div class="topbar-links">
+      <a id="t-tel" href="#">—</a>
+      <a class="hide-s" href="#contacto">Contacto</a>
+    </div>
+  </div>
+</div>
+
+<header class="site">
+  <div class="wrap headmain">
+    <a class="brand" href="#top" id="t-brand" aria-label="Nuevo Impacto, inicio">
+      <span class="ni-logo" id="t-logo" style="--h:46px"></span>
+    </a>
+    <div class="searchbox">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input id="q" type="search" placeholder="Busca: tarjetas, camisetas, vinilo, lona…" aria-label="Buscar productos">
+    </div>
+    <div class="headacts">
+      <a class="iconbtn" href="#contacto">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16v12H4z"/><path d="M4 7l8 6 8-6"/></svg>
+        <span class="hide-s">Presupuesto</span>
+      </a>
+      <button class="iconbtn" id="btn-cart" aria-label="Abrir cesta">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16l-1.4 11.2a2 2 0 0 1-2 1.8H7.4a2 2 0 0 1-2-1.8L4 7z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/></svg>
+        Cesta <span class="count" id="cart-count">0</span>
+      </button>
+    </div>
+  </div>
+  <nav class="cats" aria-label="Categorías y secciones"><div class="wrap" id="catnav"></div></nav>
+  <div class="cmyk-bar"><i></i><i></i><i></i><i></i></div>
+</header>
+
+<div class="hero" id="top">
+  <div class="wrap">
+    <div>
+      <div class="kicker">
+        <svg class="regmark" viewBox="0 0 14 14"><circle cx="7" cy="7" r="4.2"/><line x1="7" y1="0" x2="7" y2="14"/><line x1="0" y1="7" x2="14" y2="7"/></svg>
+        <span id="t-kicker"></span>
+      </div>
+      <h1><span class="reg-stack" id="t-h1"></span></h1>
+      <p class="lead" id="t-lead"></p>
+      <div class="hero-cta">
+        <a class="btn pink" href="#catalogo">Ver catálogo y precios</a>
+        <a class="btn alt" href="#contacto">Enviar un archivo a revisar</a>
+      </div>
+    </div>
+    <div class="ot">
+      <div class="ot-head"><span class="t">Orden de trabajo</span><span class="n" id="t-ot">OT-2026-0418</span></div>
+      <div class="ot-rows">
+        <div class="ot-row"><span class="k">Cliente</span><span class="v">Bodega de la Vega</span></div>
+        <div class="ot-row"><span class="k">Trabajo</span><span class="v">Etiqueta adhesiva 90×120</span></div>
+        <div class="ot-row"><span class="k">Soporte</span><span class="v">Estucado adhesivo 90 g</span></div>
+        <div class="ot-row"><span class="k">Tirada</span><span class="v">2.500 ud.</span></div>
+        <div class="ot-row"><span class="k">Entrega</span><span class="v">Jueves, en almacén</span></div>
+      </div>
+      <div class="ot-swatches">
+        <i data-l="C" style="background:#00A0D8"></i><i data-l="M" style="background:var(--acc)"></i>
+        <i data-l="Y" style="background:#FFD100"></i><i data-l="K" style="background:#0E1116"></i>
+      </div>
+      <div class="ot-foot"><span class="st"><span class="dot"></span> En máquina</span><span class="mono">Prueba de color aprobada</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="perks"><div class="wrap" id="t-perks"></div></div>
+
+<section id="categorias">
+  <div class="wrap">
+    <div class="sec-head"><div>
+      <div class="eyebrow"><svg class="regmark" viewBox="0 0 14 14"><circle cx="7" cy="7" r="4.2"/><line x1="7" y1="0" x2="7" y2="14"/><line x1="0" y1="7" x2="14" y2="7"/></svg> Qué fabricamos</div>
+      <h2>Elige por dónde empezar</h2>
+      <p>Familias de producto que cubren casi todo lo que pide un negocio: de la tarjeta de visita a la furgoneta rotulada.</p>
+    </div></div>
+    <div class="cat-grid" id="cat-grid"></div>
+  </div>
+</section>
+
+<section id="destacados" style="padding-top:0">
+  <div class="wrap">
+    <div class="sec-head">
+      <div>
+        <div class="eyebrow"><svg class="regmark" viewBox="0 0 14 14"><circle cx="7" cy="7" r="4.2"/><line x1="7" y1="0" x2="7" y2="14"/><line x1="0" y1="7" x2="14" y2="7"/></svg> Lo que más sale</div>
+        <h2>Lo más pedido del mostrador</h2>
+        <p>Cuatro trabajos que entran casi todas las semanas. Precio cerrado antes de encargar.</p>
+      </div>
+    </div>
+    <div class="dest" id="t-dest"></div>
+  </div>
+</section>
+
+<section id="catalogo" style="background:var(--smoke);border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="wrap">
+    <div class="sec-head">
+      <div>
+        <div class="eyebrow"><svg class="regmark" viewBox="0 0 14 14"><circle cx="7" cy="7" r="4.2"/><line x1="7" y1="0" x2="7" y2="14"/><line x1="0" y1="7" x2="14" y2="7"/></svg> Catálogo</div>
+        <h2 id="cat-title">Todos los productos</h2>
+        <p>Precios por tirada y sin IVA. Abre cualquier producto para configurarlo y ver el importe exacto.</p>
+      </div>
+      <span class="mono" id="cat-count" style="font-size:12.5px;color:var(--muted)"></span>
+    </div>
+    <div class="prod-grid" id="grid"></div>
+  </div>
+</section>
+
+<section id="sectores">
+  <div class="wrap">
+    <div class="sec-head">
+      <div>
+        <div class="eyebrow"><svg class="regmark" viewBox="0 0 14 14"><circle cx="7" cy="7" r="4.2"/><line x1="7" y1="0" x2="7" y2="14"/><line x1="0" y1="7" x2="14" y2="7"/></svg> Para tu sector</div>
+        <h2>Cada gremio pide lo suyo</h2>
+        <p>Estos son los encargos que más nos llegan de cada tipo de negocio de la comarca. Si el tuyo no está, llámanos igualmente.</p>
+      </div>
+    </div>
+    <div class="sect" id="t-sectores"></div>
+  </div>
+</section>
+
+<section class="proc" id="proceso">
+  <div class="wrap">
+    <div class="sec-head"><div>
+      <div class="eyebrow" style="color:var(--yellow)"><svg class="regmark" viewBox="0 0 14 14"><circle cx="7" cy="7" r="4.2"/><line x1="7" y1="0" x2="7" y2="14"/><line x1="0" y1="7" x2="14" y2="7"/></svg> Cómo va un pedido</div>
+      <h2>De tu archivo a tu mostrador</h2>
+      <p>Cuatro pasos, en este orden. Te avisamos en cada uno.</p>
+    </div></div>
+    <div class="steps" id="t-steps"></div>
+
+    <h3 style="color:#fff;margin-top:44px;font-size:21px">Cómo tiene que venir el archivo</h3>
+    <p style="color:#A9B1BA;font-size:15px;margin-top:8px;max-width:60ch">Si te cuadran estos cuatro puntos, tu trabajo entra en máquina sin llamadas de por medio. Y si no, lo ajustamos nosotros.</p>
+    <div class="specs" id="t-specs"></div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head"><div>
+      <div class="eyebrow"><svg class="regmark" viewBox="0 0 14 14"><circle cx="7" cy="7" r="4.2"/><line x1="7" y1="0" x2="7" y2="14"/><line x1="0" y1="7" x2="14" y2="7"/></svg> Taller</div>
+      <h2>Técnicas bajo el mismo techo</h2>
+      <p>Elegimos la que mejor sale para cada trabajo, no la que queda libre.</p>
+    </div></div>
+    <div class="tecn" id="t-tecn"></div>
+  </div>
+</section>
+
+<section id="faq" style="background:var(--smoke);border-top:1px solid var(--line)">
+  <div class="wrap">
+    <div class="sec-head">
+      <div>
+        <div class="eyebrow"><svg class="regmark" viewBox="0 0 14 14"><circle cx="7" cy="7" r="4.2"/><line x1="7" y1="0" x2="7" y2="14"/><line x1="0" y1="7" x2="14" y2="7"/></svg> Preguntas frecuentes</div>
+        <h2>Lo que nos preguntan en el mostrador</h2>
+      </div>
+    </div>
+    <div class="faq" id="t-faq"></div>
+  </div>
+</section>
+
+<section class="contact" id="contacto">
+  <div class="wrap">
+    <div>
+      <div class="eyebrow"><svg class="regmark" viewBox="0 0 14 14"><circle cx="7" cy="7" r="4.2"/><line x1="7" y1="0" x2="7" y2="14"/><line x1="0" y1="7" x2="14" y2="7"/></svg> Contacto</div>
+      <h2>Pásate o escríbenos</h2>
+      <p style="margin-top:12px;color:var(--ink-70);max-width:46ch">Si el trabajo no está en el catálogo, cuéntanoslo: casi todo lo que se imprime o se marca lo hemos hecho alguna vez.</p>
+      <div class="datos" id="t-datos"></div>
+    </div>
+    <div class="form">
+      <h3 style="margin-bottom:16px">Cuéntanos qué necesitas</h3>
+      <div class="field"><label for="f-nom">Nombre y empresa</label><input id="f-nom" placeholder="Ana Ruiz · Bar La Plaza"></div>
+      <div class="field"><label for="f-tel">Teléfono o correo</label><input id="f-tel" placeholder="Para poder responderte"></div>
+      <div class="field"><label for="f-tra">Trabajo</label><select id="f-tra"></select></div>
+      <div class="field"><label for="f-msg">Detalles</label><textarea id="f-msg" placeholder="Medidas, cantidad, fecha en la que lo necesitas…"></textarea></div>
+      <button class="btn block" id="f-send">Enviar consulta</button>
+      <p class="mono" style="font-size:11px;color:var(--muted);margin-top:12px;text-align:center">Las consultas llegan al panel interno.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="cols">
+      <div>
+        <div style="margin-bottom:16px">
+          <span class="ni-logo inv" id="f-logo" style="--h:54px"></span>
+          <div class="mono" id="f-sub" style="font-size:10.5px;letter-spacing:.18em;color:#7C858F;margin-top:10px">soluciones gráficas</div>
+        </div>
+        <p style="max-width:34ch" id="f-desc"></p>
+      </div>
+      <div><h4>Catálogo</h4><ul id="f-cats"></ul></div>
+      <div><h4>Ayuda</h4><ul>
+        <li><a href="#proceso">Cómo enviar el arte</a></li>
+        <li><a href="#faq">Preguntas frecuentes</a></li>
+        <li><a href="#sectores">Para tu sector</a></li>
+        <li><a href="#contacto">Presupuesto a medida</a></li>
+      </ul></div>
+      <div><h4>Contacto</h4><ul id="f-contacto"></ul></div>
+    </div>
+    <div class="legal">
+      <span id="f-legal"></span>
+      <span><button class="linkbtn" id="btn-admin" style="color:#7C858F">Acceso interno</button></span>
+    </div>
+  </div>
+</footer>
+</div><!-- /tienda -->
+
+<!-- ===================== CAPAS ===================== -->
+<div class="overlay" id="overlay"></div>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="m-title">
+  <div class="modal-head">
+    <div>
+      <div class="mono" id="m-tech" style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)"></div>
+      <h3 id="m-title" style="margin-top:4px"></h3>
+    </div>
+    <button class="closebtn" data-close aria-label="Cerrar">✕</button>
+  </div>
+  <div class="modal-body">
+    <div class="mb-left">
+      <div class="art" id="m-art"></div>
+      <p class="mono" id="m-sku" style="font-size:11px;color:var(--muted);margin-top:12px"></p>
+      <p id="m-desc" style="font-size:14px;color:var(--ink-70);margin-top:8px"></p>
+    </div>
+    <div class="mb-right" id="m-opts"></div>
+  </div>
+  <div class="pricebox">
+    <div class="amount"><b id="m-price">—</b><span id="m-unit"></span></div>
+    <button class="btn pink" id="m-add">Añadir a la cesta</button>
+  </div>
+</div>
+
+<!-- modal genérico (checkout, admin, confirmaciones) -->
+<div class="modal narrow" id="dlg" role="dialog" aria-modal="true">
+  <div class="modal-head"><h3 id="dlg-title"></h3><button class="closebtn" data-close aria-label="Cerrar">✕</button></div>
+  <div class="modal-body" id="dlg-body" style="padding:22px"></div>
+  <div class="pricebox" id="dlg-foot"></div>
+</div>
+
+<aside class="drawer" id="drawer" aria-label="Cesta">
+  <div class="drawer-head"><h3>Tu cesta</h3><button class="closebtn" data-close aria-label="Cerrar cesta">✕</button></div>
+  <div class="drawer-body" id="cart-body"></div>
+  <div class="drawer-foot" id="cart-foot"></div>
+</aside>
+
+<template id="logo-tpl"><svg xmlns="http://www.w3.org/2000/svg" viewBox="-38.0 -300.0 810.0 398.0" role="img" aria-label="Nuevo Impacto Soluciones Gráficas">
+  <path d="M8.00 -87.80Q8.00 -92.40 8.30 -94.70Q8.60 -97.00 10.00 -100.00Q12.80 -105.20 25.60 -105.20Q35.20 -105.20 39.20 -101.80Q42.60 -99.00 42.80 -93.20Q43.00 -91.20 43.00 -87.40V-17.40Q43.00 -12.80 42.70 -10.50Q42.40 -8.20 40.80 -5.20Q38.20 0.00 25.40 0.00Q12.80 0.00 10.00 -5.40Q8.60 -8.40 8.30 -10.60Q8.00 -12.80 8.00 -17.60Z M87.40 -91.40Q96.80 -105.60 110.00 -105.60Q130.40 -105.60 140.40 -88.20Q142.60 -91.20 145.70 -94.50Q148.80 -97.80 155.60 -101.70Q162.40 -105.60 169.60 -105.60Q185.60 -105.60 196.40 -93.30Q207.20 -81.00 207.20 -52.60V-17.60Q207.20 -13.00 206.90 -10.70Q206.60 -8.40 205.00 -5.40Q202.40 0.00 189.60 0.00Q177.00 0.00 174.20 -5.60Q172.80 -8.60 172.50 -10.90Q172.20 -13.20 172.20 -17.80V-52.80Q172.20 -70.20 159.80 -70.20Q152.80 -70.20 150.30 -65.60Q147.80 -61.00 147.80 -52.60V-17.60Q147.80 -12.80 147.50 -10.60Q147.20 -8.40 145.60 -5.40Q142.80 0.00 130.00 0.00Q117.40 0.00 114.60 -5.60Q113.20 -8.60 112.90 -10.90Q112.60 -13.20 112.60 -17.80V-52.80Q112.60 -70.20 100.20 -70.20Q88.20 -70.20 88.20 -52.80V-17.40Q88.20 -12.80 87.90 -10.50Q87.60 -8.20 86.00 -5.20Q83.00 0.00 70.40 0.00Q57.80 0.00 55.00 -5.40Q53.60 -8.40 53.30 -10.60Q53.00 -12.80 53.00 -17.60V-88.00Q53.00 -92.60 53.30 -94.90Q53.60 -97.20 55.20 -100.00Q58.20 -105.40 69.40 -105.40Q80.60 -105.40 84.00 -101.80Q87.40 -98.20 87.40 -91.40Z M217.20 28.60V-88.20Q217.20 -92.80 217.50 -95.00Q217.80 -97.20 219.20 -100.00Q222.00 -105.40 232.60 -105.40Q243.20 -105.40 246.90 -102.70Q250.60 -100.00 251.20 -94.80Q258.80 -105.20 275.10 -105.20Q291.40 -105.20 306.00 -89.80Q320.60 -74.40 320.60 -54.00Q320.60 -33.60 306.10 -18.20Q291.60 -2.80 275.20 -2.80Q258.80 -2.80 251.40 -12.00V28.40Q251.40 33.00 251.10 35.20Q250.80 37.40 249.30 40.30Q247.80 43.20 244.20 44.40Q240.60 45.60 234.40 45.60Q228.20 45.60 224.50 44.40Q220.80 43.20 219.30 40.40Q217.80 37.60 217.50 35.40Q217.20 33.20 217.20 28.60Z M396.00 -94.20Q397.20 -105.40 411.80 -105.40Q419.60 -105.40 423.40 -104.20Q427.20 -103.00 428.70 -100.00Q430.20 -97.00 430.50 -94.70Q430.80 -92.40 430.80 -87.80V-17.80Q430.80 -13.20 430.50 -10.90Q430.20 -8.60 428.80 -5.60Q426.00 -0.40 415.10 -0.40Q404.20 -0.40 400.50 -3.10Q396.80 -5.80 396.20 -11.00Q388.80 -0.40 371.50 -0.40Q354.20 -0.40 339.40 -16.20Q324.60 -32.00 324.60 -52.90Q324.60 -73.80 339.50 -89.50Q354.40 -105.20 372.20 -105.20Q379.00 -105.20 384.60 -102.80Q390.20 -100.40 392.40 -98.30Q394.60 -96.20 396.00 -94.20Z M512.00 -42.20Q518.00 -42.20 526.60 -31.60Q531.20 -25.80 531.20 -21.20Q531.20 -13.60 520.20 -7.00Q508.80 1.00 492.20 1.00Q473.60 1.00 456.40 -12.40Q448.20 -18.80 443.00 -29.50Q437.80 -40.20 437.80 -53.10Q437.80 -66.00 443.00 -76.50Q448.20 -87.00 456.40 -93.40Q473.00 -106.60 491.80 -106.60Q499.40 -106.60 506.60 -104.50Q513.80 -102.40 517.20 -100.40L520.40 -98.40Q524.00 -96.00 526.00 -94.60Q531.20 -90.60 531.20 -85.50Q531.20 -80.40 527.00 -74.00Q519.80 -63.00 513.20 -63.00Q509.40 -63.00 502.40 -67.40Q498.80 -70.80 492.10 -70.80Q485.40 -70.80 479.60 -66.00Q473.80 -61.20 473.80 -52.70Q473.80 -44.20 479.40 -39.50Q485.00 -34.80 491.30 -34.80Q497.60 -34.80 503.10 -38.50Q508.60 -42.20 512.00 -42.20Z M599.40 -70.00 586.40 -70.80V-43.20Q586.40 -37.80 588.10 -35.40Q589.80 -33.00 594.50 -33.00Q599.20 -33.00 601.70 -32.70Q604.20 -32.40 607.00 -30.80Q611.60 -28.20 611.60 -17.40Q611.60 -4.80 606.00 -2.00Q603.00 -0.60 600.70 -0.30Q598.40 0.00 594.00 0.00Q573.20 0.00 562.40 -9.40Q551.60 -18.80 551.60 -41.20V-70.80Q547.80 -70.20 543.40 -70.20Q539.00 -70.20 536.10 -73.60Q533.20 -77.00 533.20 -85.20Q533.20 -93.40 534.20 -97.10Q535.20 -100.80 537.00 -102.40Q540.20 -105.00 545.00 -105.00L551.60 -104.20V-124.80Q551.60 -129.40 551.90 -131.60Q552.20 -133.80 553.80 -136.40Q556.40 -141.40 569.20 -141.40Q582.80 -141.40 585.40 -134.00Q586.40 -130.80 586.40 -123.80V-104.20Q595.20 -105.00 599.70 -105.00Q604.20 -105.00 606.50 -104.70Q608.80 -104.40 611.80 -102.80Q617.00 -100.20 617.00 -87.40Q617.00 -74.80 611.60 -72.00Q608.60 -70.60 606.30 -70.30Q604.00 -70.00 599.40 -70.00Z M729.00 -52.80Q729.00 -36.20 720.40 -23.30Q711.80 -10.40 699.50 -4.30Q687.20 1.80 674.00 1.80Q660.80 1.80 648.40 -4.70Q636.00 -11.20 627.50 -23.90Q619.00 -36.60 619.00 -52.60Q619.00 -76.60 635.80 -92.20Q652.60 -107.80 674.20 -107.80Q695.80 -107.80 712.40 -92.30Q729.00 -76.80 729.00 -52.80Z" class="lg-borde" stroke-width="64" stroke-linejoin="round"/>
+  <path d="M25.50,-166.08L32.31,-146.48L53.06,-146.06L36.52,-133.52L42.53,-113.65L25.50,-125.51L8.47,-113.65L14.48,-133.52L-2.06,-146.06L18.69,-146.48Z" class="lg-borde" stroke-width="48.4" stroke-linejoin="round"/>
+  <g transform="translate(417.8 -140.0) rotate(-6)"><path d="M31.97 -50.59Q41.57 -50.59 47.95 -43.25Q54.34 -35.90 54.34 -25.34V-8.45Q54.34 -6.24 54.19 -5.14Q54.05 -4.03 53.38 -2.69Q52.03 -0.10 45.89 -0.10Q39.07 -0.10 38.02 -3.65Q37.44 -5.28 37.44 -8.54V-25.44Q37.44 -29.38 35.18 -31.58Q32.93 -33.79 29.14 -33.79Q25.34 -33.79 22.99 -31.49Q20.64 -29.18 20.64 -25.44V-8.45Q20.64 -6.24 20.50 -5.14Q20.35 -4.03 19.58 -2.69Q18.34 -0.10 12.19 -0.10Q6.14 -0.10 4.80 -2.69Q4.13 -4.13 3.98 -5.23Q3.84 -6.34 3.84 -8.54V-42.53Q3.84 -44.64 3.98 -45.74Q4.13 -46.85 4.90 -48.19Q6.24 -50.59 12.29 -50.59Q18.14 -50.59 19.49 -48.38Q20.45 -46.75 20.45 -44.45Q20.83 -45.12 22.18 -46.37Q23.52 -47.62 24.77 -48.38Q28.03 -50.59 31.97 -50.59Z M82.48 -0.19Q72.78 -0.19 66.40 -7.54Q60.02 -14.88 60.02 -25.44V-42.24Q60.02 -44.54 60.16 -45.60Q60.30 -46.66 60.98 -48.10Q62.32 -50.69 68.46 -50.69Q75.18 -50.69 76.34 -47.04Q76.91 -45.50 76.91 -42.14V-25.34Q76.91 -21.41 79.17 -19.20Q81.42 -16.99 85.22 -16.99Q89.01 -16.99 91.36 -19.30Q93.71 -21.60 93.71 -25.34V-42.34Q93.71 -44.54 93.86 -45.65Q94.00 -46.75 94.77 -48.19Q96.02 -50.69 102.16 -50.69Q108.21 -50.69 109.55 -48.10Q110.22 -46.66 110.37 -45.55Q110.51 -44.45 110.51 -42.24V-8.26Q110.51 -6.14 110.37 -5.04Q110.22 -3.94 109.46 -2.59Q108.02 -0.10 102.06 -0.10Q96.21 -0.10 94.86 -2.40Q93.90 -4.03 93.90 -6.34Q93.52 -5.66 92.18 -4.42Q90.83 -3.17 89.58 -2.30Q86.32 -0.19 82.48 -0.19Z M155.55 -19.78H132.80Q132.80 -17.09 135.97 -15.26Q139.14 -13.44 142.30 -13.44Q147.87 -13.44 151.04 -14.59L152.10 -14.98Q154.40 -16.03 155.94 -16.03Q159.01 -16.03 161.22 -11.71Q162.46 -9.12 162.46 -7.30Q162.46 1.25 142.02 1.25Q134.91 1.25 129.39 -1.20Q123.87 -3.65 120.80 -7.68Q114.75 -15.46 114.75 -25.06Q114.75 -37.15 122.58 -44.40Q130.40 -51.65 142.11 -51.65Q155.46 -51.65 161.70 -42.24Q164.96 -37.25 164.96 -31.34Q164.96 -25.44 162.03 -22.61Q159.10 -19.78 155.55 -19.78Z M220.18 -49.44Q225.17 -46.46 225.17 -43.10Q225.17 -41.18 223.25 -37.82L203.38 -3.74Q202.42 -2.11 200.30 -0.82Q198.19 0.48 196.13 0.48Q194.06 0.48 192.19 -0.53Q190.32 -1.54 189.55 -2.59L188.69 -3.65L168.72 -37.82Q166.80 -40.99 166.80 -43.01Q166.80 -46.46 171.79 -49.44Q175.44 -51.55 177.55 -51.55Q179.66 -51.55 180.86 -50.26Q182.06 -48.96 183.41 -46.37L195.98 -22.18L208.56 -46.37Q209.62 -48.19 210.14 -49.01Q210.67 -49.82 211.82 -50.64Q212.98 -51.46 214.90 -51.46Q216.82 -51.46 220.18 -49.44Z M279.81 -25.34Q279.81 -17.38 275.68 -11.18Q271.55 -4.99 265.65 -2.06Q259.74 0.86 253.41 0.86Q247.07 0.86 241.12 -2.26Q235.17 -5.38 231.09 -11.47Q227.01 -17.57 227.01 -25.25Q227.01 -36.77 235.07 -44.26Q243.14 -51.74 253.50 -51.74Q263.87 -51.74 271.84 -44.30Q279.81 -36.86 279.81 -25.34Z" class="lg-borde" stroke-width="38" stroke-linejoin="round"/></g>
+  <path d="M8.00 -87.80Q8.00 -92.40 8.30 -94.70Q8.60 -97.00 10.00 -100.00Q12.80 -105.20 25.60 -105.20Q35.20 -105.20 39.20 -101.80Q42.60 -99.00 42.80 -93.20Q43.00 -91.20 43.00 -87.40V-17.40Q43.00 -12.80 42.70 -10.50Q42.40 -8.20 40.80 -5.20Q38.20 0.00 25.40 0.00Q12.80 0.00 10.00 -5.40Q8.60 -8.40 8.30 -10.60Q8.00 -12.80 8.00 -17.60Z M87.40 -91.40Q96.80 -105.60 110.00 -105.60Q130.40 -105.60 140.40 -88.20Q142.60 -91.20 145.70 -94.50Q148.80 -97.80 155.60 -101.70Q162.40 -105.60 169.60 -105.60Q185.60 -105.60 196.40 -93.30Q207.20 -81.00 207.20 -52.60V-17.60Q207.20 -13.00 206.90 -10.70Q206.60 -8.40 205.00 -5.40Q202.40 0.00 189.60 0.00Q177.00 0.00 174.20 -5.60Q172.80 -8.60 172.50 -10.90Q172.20 -13.20 172.20 -17.80V-52.80Q172.20 -70.20 159.80 -70.20Q152.80 -70.20 150.30 -65.60Q147.80 -61.00 147.80 -52.60V-17.60Q147.80 -12.80 147.50 -10.60Q147.20 -8.40 145.60 -5.40Q142.80 0.00 130.00 0.00Q117.40 0.00 114.60 -5.60Q113.20 -8.60 112.90 -10.90Q112.60 -13.20 112.60 -17.80V-52.80Q112.60 -70.20 100.20 -70.20Q88.20 -70.20 88.20 -52.80V-17.40Q88.20 -12.80 87.90 -10.50Q87.60 -8.20 86.00 -5.20Q83.00 0.00 70.40 0.00Q57.80 0.00 55.00 -5.40Q53.60 -8.40 53.30 -10.60Q53.00 -12.80 53.00 -17.60V-88.00Q53.00 -92.60 53.30 -94.90Q53.60 -97.20 55.20 -100.00Q58.20 -105.40 69.40 -105.40Q80.60 -105.40 84.00 -101.80Q87.40 -98.20 87.40 -91.40Z M217.20 28.60V-88.20Q217.20 -92.80 217.50 -95.00Q217.80 -97.20 219.20 -100.00Q222.00 -105.40 232.60 -105.40Q243.20 -105.40 246.90 -102.70Q250.60 -100.00 251.20 -94.80Q258.80 -105.20 275.10 -105.20Q291.40 -105.20 306.00 -89.80Q320.60 -74.40 320.60 -54.00Q320.60 -33.60 306.10 -18.20Q291.60 -2.80 275.20 -2.80Q258.80 -2.80 251.40 -12.00V28.40Q251.40 33.00 251.10 35.20Q250.80 37.40 249.30 40.30Q247.80 43.20 244.20 44.40Q240.60 45.60 234.40 45.60Q228.20 45.60 224.50 44.40Q220.80 43.20 219.30 40.40Q217.80 37.60 217.50 35.40Q217.20 33.20 217.20 28.60Z M396.00 -94.20Q397.20 -105.40 411.80 -105.40Q419.60 -105.40 423.40 -104.20Q427.20 -103.00 428.70 -100.00Q430.20 -97.00 430.50 -94.70Q430.80 -92.40 430.80 -87.80V-17.80Q430.80 -13.20 430.50 -10.90Q430.20 -8.60 428.80 -5.60Q426.00 -0.40 415.10 -0.40Q404.20 -0.40 400.50 -3.10Q396.80 -5.80 396.20 -11.00Q388.80 -0.40 371.50 -0.40Q354.20 -0.40 339.40 -16.20Q324.60 -32.00 324.60 -52.90Q324.60 -73.80 339.50 -89.50Q354.40 -105.20 372.20 -105.20Q379.00 -105.20 384.60 -102.80Q390.20 -100.40 392.40 -98.30Q394.60 -96.20 396.00 -94.20Z M512.00 -42.20Q518.00 -42.20 526.60 -31.60Q531.20 -25.80 531.20 -21.20Q531.20 -13.60 520.20 -7.00Q508.80 1.00 492.20 1.00Q473.60 1.00 456.40 -12.40Q448.20 -18.80 443.00 -29.50Q437.80 -40.20 437.80 -53.10Q437.80 -66.00 443.00 -76.50Q448.20 -87.00 456.40 -93.40Q473.00 -106.60 491.80 -106.60Q499.40 -106.60 506.60 -104.50Q513.80 -102.40 517.20 -100.40L520.40 -98.40Q524.00 -96.00 526.00 -94.60Q531.20 -90.60 531.20 -85.50Q531.20 -80.40 527.00 -74.00Q519.80 -63.00 513.20 -63.00Q509.40 -63.00 502.40 -67.40Q498.80 -70.80 492.10 -70.80Q485.40 -70.80 479.60 -66.00Q473.80 -61.20 473.80 -52.70Q473.80 -44.20 479.40 -39.50Q485.00 -34.80 491.30 -34.80Q497.60 -34.80 503.10 -38.50Q508.60 -42.20 512.00 -42.20Z M599.40 -70.00 586.40 -70.80V-43.20Q586.40 -37.80 588.10 -35.40Q589.80 -33.00 594.50 -33.00Q599.20 -33.00 601.70 -32.70Q604.20 -32.40 607.00 -30.80Q611.60 -28.20 611.60 -17.40Q611.60 -4.80 606.00 -2.00Q603.00 -0.60 600.70 -0.30Q598.40 0.00 594.00 0.00Q573.20 0.00 562.40 -9.40Q551.60 -18.80 551.60 -41.20V-70.80Q547.80 -70.20 543.40 -70.20Q539.00 -70.20 536.10 -73.60Q533.20 -77.00 533.20 -85.20Q533.20 -93.40 534.20 -97.10Q535.20 -100.80 537.00 -102.40Q540.20 -105.00 545.00 -105.00L551.60 -104.20V-124.80Q551.60 -129.40 551.90 -131.60Q552.20 -133.80 553.80 -136.40Q556.40 -141.40 569.20 -141.40Q582.80 -141.40 585.40 -134.00Q586.40 -130.80 586.40 -123.80V-104.20Q595.20 -105.00 599.70 -105.00Q604.20 -105.00 606.50 -104.70Q608.80 -104.40 611.80 -102.80Q617.00 -100.20 617.00 -87.40Q617.00 -74.80 611.60 -72.00Q608.60 -70.60 606.30 -70.30Q604.00 -70.00 599.40 -70.00Z M729.00 -52.80Q729.00 -36.20 720.40 -23.30Q711.80 -10.40 699.50 -4.30Q687.20 1.80 674.00 1.80Q660.80 1.80 648.40 -4.70Q636.00 -11.20 627.50 -23.90Q619.00 -36.60 619.00 -52.60Q619.00 -76.60 635.80 -92.20Q652.60 -107.80 674.20 -107.80Q695.80 -107.80 712.40 -92.30Q729.00 -76.80 729.00 -52.80Z" class="lg-halo" stroke-width="52" stroke-linejoin="round"/>
+  <path d="M25.50,-166.08L32.31,-146.48L53.06,-146.06L36.52,-133.52L42.53,-113.65L25.50,-125.51L8.47,-113.65L14.48,-133.52L-2.06,-146.06L18.69,-146.48Z" class="lg-halo-n" stroke-width="36.4" stroke-linejoin="round"/>
+  <g transform="translate(417.8 -140.0) rotate(-6)"><path d="M31.97 -50.59Q41.57 -50.59 47.95 -43.25Q54.34 -35.90 54.34 -25.34V-8.45Q54.34 -6.24 54.19 -5.14Q54.05 -4.03 53.38 -2.69Q52.03 -0.10 45.89 -0.10Q39.07 -0.10 38.02 -3.65Q37.44 -5.28 37.44 -8.54V-25.44Q37.44 -29.38 35.18 -31.58Q32.93 -33.79 29.14 -33.79Q25.34 -33.79 22.99 -31.49Q20.64 -29.18 20.64 -25.44V-8.45Q20.64 -6.24 20.50 -5.14Q20.35 -4.03 19.58 -2.69Q18.34 -0.10 12.19 -0.10Q6.14 -0.10 4.80 -2.69Q4.13 -4.13 3.98 -5.23Q3.84 -6.34 3.84 -8.54V-42.53Q3.84 -44.64 3.98 -45.74Q4.13 -46.85 4.90 -48.19Q6.24 -50.59 12.29 -50.59Q18.14 -50.59 19.49 -48.38Q20.45 -46.75 20.45 -44.45Q20.83 -45.12 22.18 -46.37Q23.52 -47.62 24.77 -48.38Q28.03 -50.59 31.97 -50.59Z M82.48 -0.19Q72.78 -0.19 66.40 -7.54Q60.02 -14.88 60.02 -25.44V-42.24Q60.02 -44.54 60.16 -45.60Q60.30 -46.66 60.98 -48.10Q62.32 -50.69 68.46 -50.69Q75.18 -50.69 76.34 -47.04Q76.91 -45.50 76.91 -42.14V-25.34Q76.91 -21.41 79.17 -19.20Q81.42 -16.99 85.22 -16.99Q89.01 -16.99 91.36 -19.30Q93.71 -21.60 93.71 -25.34V-42.34Q93.71 -44.54 93.86 -45.65Q94.00 -46.75 94.77 -48.19Q96.02 -50.69 102.16 -50.69Q108.21 -50.69 109.55 -48.10Q110.22 -46.66 110.37 -45.55Q110.51 -44.45 110.51 -42.24V-8.26Q110.51 -6.14 110.37 -5.04Q110.22 -3.94 109.46 -2.59Q108.02 -0.10 102.06 -0.10Q96.21 -0.10 94.86 -2.40Q93.90 -4.03 93.90 -6.34Q93.52 -5.66 92.18 -4.42Q90.83 -3.17 89.58 -2.30Q86.32 -0.19 82.48 -0.19Z M155.55 -19.78H132.80Q132.80 -17.09 135.97 -15.26Q139.14 -13.44 142.30 -13.44Q147.87 -13.44 151.04 -14.59L152.10 -14.98Q154.40 -16.03 155.94 -16.03Q159.01 -16.03 161.22 -11.71Q162.46 -9.12 162.46 -7.30Q162.46 1.25 142.02 1.25Q134.91 1.25 129.39 -1.20Q123.87 -3.65 120.80 -7.68Q114.75 -15.46 114.75 -25.06Q114.75 -37.15 122.58 -44.40Q130.40 -51.65 142.11 -51.65Q155.46 -51.65 161.70 -42.24Q164.96 -37.25 164.96 -31.34Q164.96 -25.44 162.03 -22.61Q159.10 -19.78 155.55 -19.78Z M220.18 -49.44Q225.17 -46.46 225.17 -43.10Q225.17 -41.18 223.25 -37.82L203.38 -3.74Q202.42 -2.11 200.30 -0.82Q198.19 0.48 196.13 0.48Q194.06 0.48 192.19 -0.53Q190.32 -1.54 189.55 -2.59L188.69 -3.65L168.72 -37.82Q166.80 -40.99 166.80 -43.01Q166.80 -46.46 171.79 -49.44Q175.44 -51.55 177.55 -51.55Q179.66 -51.55 180.86 -50.26Q182.06 -48.96 183.41 -46.37L195.98 -22.18L208.56 -46.37Q209.62 -48.19 210.14 -49.01Q210.67 -49.82 211.82 -50.64Q212.98 -51.46 214.90 -51.46Q216.82 -51.46 220.18 -49.44Z M279.81 -25.34Q279.81 -17.38 275.68 -11.18Q271.55 -4.99 265.65 -2.06Q259.74 0.86 253.41 0.86Q247.07 0.86 241.12 -2.26Q235.17 -5.38 231.09 -11.47Q227.01 -17.57 227.01 -25.25Q227.01 -36.77 235.07 -44.26Q243.14 -51.74 253.50 -51.74Q263.87 -51.74 271.84 -44.30Q279.81 -36.86 279.81 -25.34Z" class="lg-halo-n" stroke-width="26" stroke-linejoin="round"/></g>
+  <path d="M8.00 -87.80Q8.00 -92.40 8.30 -94.70Q8.60 -97.00 10.00 -100.00Q12.80 -105.20 25.60 -105.20Q35.20 -105.20 39.20 -101.80Q42.60 -99.00 42.80 -93.20Q43.00 -91.20 43.00 -87.40V-17.40Q43.00 -12.80 42.70 -10.50Q42.40 -8.20 40.80 -5.20Q38.20 0.00 25.40 0.00Q12.80 0.00 10.00 -5.40Q8.60 -8.40 8.30 -10.60Q8.00 -12.80 8.00 -17.60Z M87.40 -91.40Q96.80 -105.60 110.00 -105.60Q130.40 -105.60 140.40 -88.20Q142.60 -91.20 145.70 -94.50Q148.80 -97.80 155.60 -101.70Q162.40 -105.60 169.60 -105.60Q185.60 -105.60 196.40 -93.30Q207.20 -81.00 207.20 -52.60V-17.60Q207.20 -13.00 206.90 -10.70Q206.60 -8.40 205.00 -5.40Q202.40 0.00 189.60 0.00Q177.00 0.00 174.20 -5.60Q172.80 -8.60 172.50 -10.90Q172.20 -13.20 172.20 -17.80V-52.80Q172.20 -70.20 159.80 -70.20Q152.80 -70.20 150.30 -65.60Q147.80 -61.00 147.80 -52.60V-17.60Q147.80 -12.80 147.50 -10.60Q147.20 -8.40 145.60 -5.40Q142.80 0.00 130.00 0.00Q117.40 0.00 114.60 -5.60Q113.20 -8.60 112.90 -10.90Q112.60 -13.20 112.60 -17.80V-52.80Q112.60 -70.20 100.20 -70.20Q88.20 -70.20 88.20 -52.80V-17.40Q88.20 -12.80 87.90 -10.50Q87.60 -8.20 86.00 -5.20Q83.00 0.00 70.40 0.00Q57.80 0.00 55.00 -5.40Q53.60 -8.40 53.30 -10.60Q53.00 -12.80 53.00 -17.60V-88.00Q53.00 -92.60 53.30 -94.90Q53.60 -97.20 55.20 -100.00Q58.20 -105.40 69.40 -105.40Q80.60 -105.40 84.00 -101.80Q87.40 -98.20 87.40 -91.40Z M217.20 28.60V-88.20Q217.20 -92.80 217.50 -95.00Q217.80 -97.20 219.20 -100.00Q222.00 -105.40 232.60 -105.40Q243.20 -105.40 246.90 -102.70Q250.60 -100.00 251.20 -94.80Q258.80 -105.20 275.10 -105.20Q291.40 -105.20 306.00 -89.80Q320.60 -74.40 320.60 -54.00Q320.60 -33.60 306.10 -18.20Q291.60 -2.80 275.20 -2.80Q258.80 -2.80 251.40 -12.00V28.40Q251.40 33.00 251.10 35.20Q250.80 37.40 249.30 40.30Q247.80 43.20 244.20 44.40Q240.60 45.60 234.40 45.60Q228.20 45.60 224.50 44.40Q220.80 43.20 219.30 40.40Q217.80 37.60 217.50 35.40Q217.20 33.20 217.20 28.60Z M396.00 -94.20Q397.20 -105.40 411.80 -105.40Q419.60 -105.40 423.40 -104.20Q427.20 -103.00 428.70 -100.00Q430.20 -97.00 430.50 -94.70Q430.80 -92.40 430.80 -87.80V-17.80Q430.80 -13.20 430.50 -10.90Q430.20 -8.60 428.80 -5.60Q426.00 -0.40 415.10 -0.40Q404.20 -0.40 400.50 -3.10Q396.80 -5.80 396.20 -11.00Q388.80 -0.40 371.50 -0.40Q354.20 -0.40 339.40 -16.20Q324.60 -32.00 324.60 -52.90Q324.60 -73.80 339.50 -89.50Q354.40 -105.20 372.20 -105.20Q379.00 -105.20 384.60 -102.80Q390.20 -100.40 392.40 -98.30Q394.60 -96.20 396.00 -94.20Z M512.00 -42.20Q518.00 -42.20 526.60 -31.60Q531.20 -25.80 531.20 -21.20Q531.20 -13.60 520.20 -7.00Q508.80 1.00 492.20 1.00Q473.60 1.00 456.40 -12.40Q448.20 -18.80 443.00 -29.50Q437.80 -40.20 437.80 -53.10Q437.80 -66.00 443.00 -76.50Q448.20 -87.00 456.40 -93.40Q473.00 -106.60 491.80 -106.60Q499.40 -106.60 506.60 -104.50Q513.80 -102.40 517.20 -100.40L520.40 -98.40Q524.00 -96.00 526.00 -94.60Q531.20 -90.60 531.20 -85.50Q531.20 -80.40 527.00 -74.00Q519.80 -63.00 513.20 -63.00Q509.40 -63.00 502.40 -67.40Q498.80 -70.80 492.10 -70.80Q485.40 -70.80 479.60 -66.00Q473.80 -61.20 473.80 -52.70Q473.80 -44.20 479.40 -39.50Q485.00 -34.80 491.30 -34.80Q497.60 -34.80 503.10 -38.50Q508.60 -42.20 512.00 -42.20Z M599.40 -70.00 586.40 -70.80V-43.20Q586.40 -37.80 588.10 -35.40Q589.80 -33.00 594.50 -33.00Q599.20 -33.00 601.70 -32.70Q604.20 -32.40 607.00 -30.80Q611.60 -28.20 611.60 -17.40Q611.60 -4.80 606.00 -2.00Q603.00 -0.60 600.70 -0.30Q598.40 0.00 594.00 0.00Q573.20 0.00 562.40 -9.40Q551.60 -18.80 551.60 -41.20V-70.80Q547.80 -70.20 543.40 -70.20Q539.00 -70.20 536.10 -73.60Q533.20 -77.00 533.20 -85.20Q533.20 -93.40 534.20 -97.10Q535.20 -100.80 537.00 -102.40Q540.20 -105.00 545.00 -105.00L551.60 -104.20V-124.80Q551.60 -129.40 551.90 -131.60Q552.20 -133.80 553.80 -136.40Q556.40 -141.40 569.20 -141.40Q582.80 -141.40 585.40 -134.00Q586.40 -130.80 586.40 -123.80V-104.20Q595.20 -105.00 599.70 -105.00Q604.20 -105.00 606.50 -104.70Q608.80 -104.40 611.80 -102.80Q617.00 -100.20 617.00 -87.40Q617.00 -74.80 611.60 -72.00Q608.60 -70.60 606.30 -70.30Q604.00 -70.00 599.40 -70.00Z M729.00 -52.80Q729.00 -36.20 720.40 -23.30Q711.80 -10.40 699.50 -4.30Q687.20 1.80 674.00 1.80Q660.80 1.80 648.40 -4.70Q636.00 -11.20 627.50 -23.90Q619.00 -36.60 619.00 -52.60Q619.00 -76.60 635.80 -92.20Q652.60 -107.80 674.20 -107.80Q695.80 -107.80 712.40 -92.30Q729.00 -76.80 729.00 -52.80Z" class="lg-ink"/>
+      <path d="M269.30,-88.02L277.32,-64.94L301.75,-64.44L282.28,-49.68L289.36,-26.29L269.30,-40.25L249.24,-26.29L256.32,-49.68L236.85,-64.44L261.28,-64.94Z" class="lg-halo"/>
+    <path d="M377.10,-87.95L385.34,-64.24L410.43,-63.73L390.43,-48.57L397.70,-24.55L377.10,-38.88L356.50,-24.55L363.77,-48.57L343.77,-63.73L368.86,-64.24Z" class="lg-halo"/>
+    <path d="M674.00,-89.30L682.53,-64.75L708.52,-64.22L687.81,-48.51L695.34,-23.63L674.00,-38.48L652.66,-23.63L660.19,-48.51L639.48,-64.22L665.47,-64.75Z" class="lg-halo"/>
+  <path d="M25.50,-166.08L32.31,-146.48L53.06,-146.06L36.52,-133.52L42.53,-113.65L25.50,-125.51L8.47,-113.65L14.48,-133.52L-2.06,-146.06L18.69,-146.48Z" class="lg-red"/>
+  <g transform="translate(417.8 -140.0) rotate(-6)"><path d="M31.97 -50.59Q41.57 -50.59 47.95 -43.25Q54.34 -35.90 54.34 -25.34V-8.45Q54.34 -6.24 54.19 -5.14Q54.05 -4.03 53.38 -2.69Q52.03 -0.10 45.89 -0.10Q39.07 -0.10 38.02 -3.65Q37.44 -5.28 37.44 -8.54V-25.44Q37.44 -29.38 35.18 -31.58Q32.93 -33.79 29.14 -33.79Q25.34 -33.79 22.99 -31.49Q20.64 -29.18 20.64 -25.44V-8.45Q20.64 -6.24 20.50 -5.14Q20.35 -4.03 19.58 -2.69Q18.34 -0.10 12.19 -0.10Q6.14 -0.10 4.80 -2.69Q4.13 -4.13 3.98 -5.23Q3.84 -6.34 3.84 -8.54V-42.53Q3.84 -44.64 3.98 -45.74Q4.13 -46.85 4.90 -48.19Q6.24 -50.59 12.29 -50.59Q18.14 -50.59 19.49 -48.38Q20.45 -46.75 20.45 -44.45Q20.83 -45.12 22.18 -46.37Q23.52 -47.62 24.77 -48.38Q28.03 -50.59 31.97 -50.59Z M82.48 -0.19Q72.78 -0.19 66.40 -7.54Q60.02 -14.88 60.02 -25.44V-42.24Q60.02 -44.54 60.16 -45.60Q60.30 -46.66 60.98 -48.10Q62.32 -50.69 68.46 -50.69Q75.18 -50.69 76.34 -47.04Q76.91 -45.50 76.91 -42.14V-25.34Q76.91 -21.41 79.17 -19.20Q81.42 -16.99 85.22 -16.99Q89.01 -16.99 91.36 -19.30Q93.71 -21.60 93.71 -25.34V-42.34Q93.71 -44.54 93.86 -45.65Q94.00 -46.75 94.77 -48.19Q96.02 -50.69 102.16 -50.69Q108.21 -50.69 109.55 -48.10Q110.22 -46.66 110.37 -45.55Q110.51 -44.45 110.51 -42.24V-8.26Q110.51 -6.14 110.37 -5.04Q110.22 -3.94 109.46 -2.59Q108.02 -0.10 102.06 -0.10Q96.21 -0.10 94.86 -2.40Q93.90 -4.03 93.90 -6.34Q93.52 -5.66 92.18 -4.42Q90.83 -3.17 89.58 -2.30Q86.32 -0.19 82.48 -0.19Z M155.55 -19.78H132.80Q132.80 -17.09 135.97 -15.26Q139.14 -13.44 142.30 -13.44Q147.87 -13.44 151.04 -14.59L152.10 -14.98Q154.40 -16.03 155.94 -16.03Q159.01 -16.03 161.22 -11.71Q162.46 -9.12 162.46 -7.30Q162.46 1.25 142.02 1.25Q134.91 1.25 129.39 -1.20Q123.87 -3.65 120.80 -7.68Q114.75 -15.46 114.75 -25.06Q114.75 -37.15 122.58 -44.40Q130.40 -51.65 142.11 -51.65Q155.46 -51.65 161.70 -42.24Q164.96 -37.25 164.96 -31.34Q164.96 -25.44 162.03 -22.61Q159.10 -19.78 155.55 -19.78Z M220.18 -49.44Q225.17 -46.46 225.17 -43.10Q225.17 -41.18 223.25 -37.82L203.38 -3.74Q202.42 -2.11 200.30 -0.82Q198.19 0.48 196.13 0.48Q194.06 0.48 192.19 -0.53Q190.32 -1.54 189.55 -2.59L188.69 -3.65L168.72 -37.82Q166.80 -40.99 166.80 -43.01Q166.80 -46.46 171.79 -49.44Q175.44 -51.55 177.55 -51.55Q179.66 -51.55 180.86 -50.26Q182.06 -48.96 183.41 -46.37L195.98 -22.18L208.56 -46.37Q209.62 -48.19 210.14 -49.01Q210.67 -49.82 211.82 -50.64Q212.98 -51.46 214.90 -51.46Q216.82 -51.46 220.18 -49.44Z M279.81 -25.34Q279.81 -17.38 275.68 -11.18Q271.55 -4.99 265.65 -2.06Q259.74 0.86 253.41 0.86Q247.07 0.86 241.12 -2.26Q235.17 -5.38 231.09 -11.47Q227.01 -17.57 227.01 -25.25Q227.01 -36.77 235.07 -44.26Q243.14 -51.74 253.50 -51.74Q263.87 -51.74 271.84 -44.30Q279.81 -36.86 279.81 -25.34Z" class="lg-red"/><path d="M253.41,-44.45L257.88,-31.59L271.49,-31.31L260.64,-23.09L264.58,-10.06L253.41,-17.84L242.24,-10.06L246.18,-23.09L235.33,-31.31L248.94,-31.59Z" class="lg-halon"/></g>
+</svg></template>
+
+<div class="toast" id="toast"><span class="dotok"></span><span id="toast-txt"></span></div>
+
+<!-- ===================== LOGIN ADMIN ===================== -->
+<div class="login hidden" id="login">
+  <div class="box">
+    <span class="ni-logo" id="l-logo" style="--h:48px;margin:0 auto 20px"></span>
+    <h3>Panel interno</h3>
+    <p style="font-size:14px;color:var(--muted);margin-top:6px">Introduce el PIN para gestionar catálogo y pedidos.</p>
+    <input id="pin" type="password" inputmode="numeric" maxlength="8" placeholder="••••" aria-label="PIN">
+    <button class="btn block pink" id="pin-ok">Entrar</button>
+    <button class="linkbtn" id="pin-x" style="margin-top:16px">Volver a la tienda</button>
+    <p class="mono" style="font-size:11px;color:var(--muted);margin-top:18px">PIN del prototipo: 1234</p>
+  </div>
+</div>
+
+<!-- ===================== ADMIN ===================== -->
+<div id="admin" class="hidden">
+  <div class="adm-top">
+    <div class="l">
+      <span class="ni-logo inv" id="a-logo" style="--h:28px"></span>
+      <b style="font-family:var(--f-display);letter-spacing:-.02em">Panel de gestión</b>
+      <span class="badge">Admin</span>
+    </div>
+    <div class="r">
+      <span class="sync" id="sync"><i></i><span id="sync-txt">Solo este dispositivo</span></span>
+      <button id="adm-ver">Ver la tienda</button>
+      <button id="adm-out">Salir</button>
+    </div>
+  </div>
+  <div class="adm-main">
+    <nav class="adm-nav" id="adm-nav"></nav>
+    <div class="adm-body" id="adm-body"></div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   0. UTILIDADES
+   ============================================================ */
+const $  = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const eur = n => (Number(n)||0).toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' €';
+const num = n => (Number(n)||0).toLocaleString('es-ES');
+const uid = () => Math.random().toString(36).slice(2,9);
+const esc = s => String(s??'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const clone = o => JSON.parse(JSON.stringify(o));
+const hoy = () => new Date().toISOString().slice(0,10);
+function toast(txt){
+  $('#toast-txt').textContent = txt;
+  $('#toast').classList.add('on');
+  clearTimeout(window._t);
+  window._t = setTimeout(()=>$('#toast').classList.remove('on'), 2600);
+}
+
+/* ============================================================
+   1. ILUSTRACIONES (biblioteca fija, elegible desde el panel)
+   ============================================================ */
+const ART = {
+ tarjeta:`<svg viewBox="0 0 120 90"><rect x="14" y="22" width="80" height="48" rx="4" fill="#fff" stroke="#0E1116" stroke-width="2"/><rect x="24" y="34" width="26" height="4" rx="2" fill="#E5007E"/><rect x="24" y="44" width="44" height="3" rx="1.5" fill="#C9CFD6"/><rect x="24" y="52" width="34" height="3" rx="1.5" fill="#C9CFD6"/><circle cx="80" cy="38" r="7" fill="none" stroke="#00A0D8" stroke-width="2"/></svg>`,
+ flyer:`<svg viewBox="0 0 120 90"><rect x="30" y="10" width="52" height="70" rx="3" fill="#fff" stroke="#0E1116" stroke-width="2"/><rect x="30" y="10" width="52" height="22" fill="#00A0D8"/><rect x="38" y="42" width="36" height="3.5" rx="1.7" fill="#C9CFD6"/><rect x="38" y="50" width="30" height="3.5" rx="1.7" fill="#C9CFD6"/><rect x="38" y="62" width="22" height="8" rx="4" fill="#E5007E"/></svg>`,
+ adhesivo:`<svg viewBox="0 0 120 90"><circle cx="60" cy="45" r="26" fill="#FFD100" stroke="#0E1116" stroke-width="2"/><circle cx="60" cy="45" r="17" fill="none" stroke="#0E1116" stroke-width="2" stroke-dasharray="4 3"/><path d="M52 45l6 6 12-13" fill="none" stroke="#0E1116" stroke-width="3"/></svg>`,
+ talonario:`<svg viewBox="0 0 120 90"><rect x="26" y="16" width="60" height="58" rx="3" fill="#fff" stroke="#0E1116" stroke-width="2"/><rect x="32" y="12" width="48" height="8" rx="2" fill="#0E1116"/><rect x="36" y="34" width="40" height="3" rx="1.5" fill="#C9CFD6"/><rect x="36" y="44" width="40" height="3" rx="1.5" fill="#C9CFD6"/><rect x="36" y="54" width="24" height="3" rx="1.5" fill="#E5007E"/></svg>`,
+ camiseta:`<svg viewBox="0 0 120 90"><path d="M40 18l-16 8 6 14 8-3v34h44V37l8 3 6-14-16-8-10 6h-20z" fill="#fff" stroke="#0E1116" stroke-width="2" stroke-linejoin="round"/><circle cx="60" cy="48" r="10" fill="#E5007E"/></svg>`,
+ sudadera:`<svg viewBox="0 0 120 90"><path d="M40 20l-18 10 8 14 8-4v32h44V40l8 4 8-14-18-10h-40z" fill="#0E1116" stroke="#0E1116" stroke-width="2" stroke-linejoin="round"/><path d="M50 20a10 8 0 0 0 20 0" fill="none" stroke="#fff" stroke-width="2"/><rect x="48" y="44" width="24" height="12" rx="2" fill="#FFD100"/></svg>`,
+ gorra:`<svg viewBox="0 0 120 90"><path d="M32 52a28 22 0 0 1 56 0z" fill="#00A0D8" stroke="#0E1116" stroke-width="2"/><path d="M32 52h56l14 8H32z" fill="#fff" stroke="#0E1116" stroke-width="2" stroke-linejoin="round"/><circle cx="60" cy="32" r="3" fill="#0E1116"/></svg>`,
+ bolsa:`<svg viewBox="0 0 120 90"><path d="M36 30h48l-4 44H40z" fill="#fff" stroke="#0E1116" stroke-width="2"/><path d="M48 30v-6a12 12 0 0 1 24 0v6" fill="none" stroke="#0E1116" stroke-width="2"/><rect x="50" y="46" width="20" height="14" rx="2" fill="#E5007E"/></svg>`,
+ vinilo:`<svg viewBox="0 0 120 90"><rect x="18" y="16" width="84" height="58" rx="3" fill="#EAF7FC" stroke="#0E1116" stroke-width="2"/><path d="M18 44h84" stroke="#0E1116" stroke-width="2"/><rect x="30" y="24" width="36" height="12" rx="2" fill="#00A0D8"/><rect x="30" y="54" width="24" height="8" rx="2" fill="#E5007E"/></svg>`,
+ rotulo:`<svg viewBox="0 0 120 90"><rect x="20" y="26" width="80" height="30" rx="3" fill="#0E1116"/><rect x="28" y="34" width="30" height="14" rx="2" fill="#FFD100"/><rect x="62" y="34" width="30" height="14" rx="2" fill="#00A0D8"/><path d="M34 56v14M86 56v14" stroke="#0E1116" stroke-width="3"/></svg>`,
+ lona:`<svg viewBox="0 0 120 90"><rect x="18" y="22" width="84" height="44" rx="2" fill="#fff" stroke="#0E1116" stroke-width="2"/><circle cx="24" cy="28" r="2.4" fill="#0E1116"/><circle cx="96" cy="28" r="2.4" fill="#0E1116"/><circle cx="24" cy="60" r="2.4" fill="#0E1116"/><circle cx="96" cy="60" r="2.4" fill="#0E1116"/><rect x="34" y="34" width="52" height="8" rx="2" fill="#E5007E"/><rect x="34" y="48" width="32" height="6" rx="2" fill="#00A0D8"/></svg>`,
+ furgoneta:`<svg viewBox="0 0 120 90"><path d="M14 30h56v28H14z" fill="#fff" stroke="#0E1116" stroke-width="2"/><path d="M70 38h16l12 12v8H70z" fill="#fff" stroke="#0E1116" stroke-width="2" stroke-linejoin="round"/><circle cx="34" cy="62" r="6" fill="none" stroke="#0E1116" stroke-width="2.4"/><circle cx="84" cy="62" r="6" fill="none" stroke="#0E1116" stroke-width="2.4"/><rect x="22" y="38" width="34" height="12" rx="2" fill="#E5007E"/></svg>`,
+ rollup:`<svg viewBox="0 0 120 90"><rect x="42" y="10" width="36" height="58" rx="2" fill="#fff" stroke="#0E1116" stroke-width="2"/><rect x="50" y="20" width="20" height="6" rx="2" fill="#00A0D8"/><rect x="50" y="32" width="20" height="4" rx="2" fill="#C9CFD6"/><rect x="34" y="68" width="52" height="8" rx="4" fill="#0E1116"/></svg>`,
+ cartel:`<svg viewBox="0 0 120 90"><rect x="26" y="14" width="68" height="62" rx="3" fill="#fff" stroke="#0E1116" stroke-width="2"/><path d="M26 60l20-18 14 12 12-10 22 16" fill="none" stroke="#00A0D8" stroke-width="3"/><circle cx="46" cy="30" r="6" fill="#FFD100"/></svg>`,
+ mechero:`<svg viewBox="0 0 120 90"><rect x="48" y="30" width="24" height="44" rx="6" fill="#E5007E" stroke="#0E1116" stroke-width="2"/><rect x="54" y="24" width="12" height="8" rx="2" fill="#0E1116"/><path d="M60 22c4-6 0-8 0-8s-6 4 0 8z" fill="#FFD100"/></svg>`,
+ llavero:`<svg viewBox="0 0 120 90"><circle cx="46" cy="34" r="12" fill="none" stroke="#0E1116" stroke-width="3"/><rect x="54" y="40" width="30" height="30" rx="5" fill="#00A0D8" stroke="#0E1116" stroke-width="2" transform="rotate(-12 69 55)"/></svg>`,
+ usb:`<svg viewBox="0 0 120 90"><rect x="34" y="36" width="42" height="20" rx="4" fill="#0E1116"/><rect x="76" y="41" width="14" height="10" rx="1.5" fill="#C9CFD6" stroke="#0E1116" stroke-width="2"/><circle cx="46" cy="46" r="4" fill="#FFD100"/></svg>`,
+ taza:`<svg viewBox="0 0 120 90"><path d="M36 26h44v34a12 12 0 0 1-12 12H48a12 12 0 0 1-12-12z" fill="#fff" stroke="#0E1116" stroke-width="2"/><path d="M80 34h10a8 8 0 0 1 0 16h-10" fill="none" stroke="#0E1116" stroke-width="2"/><rect x="46" y="38" width="22" height="14" rx="2" fill="#E5007E"/></svg>`,
+ boli:`<svg viewBox="0 0 120 90"><path d="M28 66l6-16 40-30 10 10-30 40z" fill="#00A0D8" stroke="#0E1116" stroke-width="2" stroke-linejoin="round"/><path d="M74 20l10 10" stroke="#0E1116" stroke-width="2"/></svg>`,
+ panuelo:`<svg viewBox="0 0 120 90"><path d="M60 16l34 34-34 26-34-26z" fill="#E5007E" stroke="#0E1116" stroke-width="2" stroke-linejoin="round"/><path d="M60 30l18 18-18 14-18-14z" fill="none" stroke="#fff" stroke-width="2"/></svg>`,
+ etiqueta:`<svg viewBox="0 0 120 90"><rect x="42" y="14" width="36" height="62" rx="4" fill="#fff" stroke="#0E1116" stroke-width="2"/><rect x="50" y="26" width="20" height="4" rx="2" fill="#0E1116"/><rect x="48" y="36" width="24" height="3" rx="1.5" fill="#C9CFD6"/><path d="M50 54h20" stroke="#E5007E" stroke-width="3"/><circle cx="60" cy="66" r="5" fill="none" stroke="#FFD100" stroke-width="3"/></svg>`,
+ sello:`<svg viewBox="0 0 120 90"><rect x="46" y="14" width="28" height="12" rx="4" fill="#0E1116"/><path d="M48 26h24l10 20H38z" fill="#E5007E" stroke="#0E1116" stroke-width="2" stroke-linejoin="round"/><rect x="30" y="48" width="60" height="12" rx="3" fill="#fff" stroke="#0E1116" stroke-width="2"/><rect x="26" y="64" width="68" height="7" rx="3.5" fill="#0E1116"/></svg>`,
+ calendario:`<svg viewBox="0 0 120 90"><rect x="30" y="18" width="60" height="56" rx="4" fill="#fff" stroke="#0E1116" stroke-width="2"/><rect x="30" y="18" width="60" height="14" fill="#0E1116"/><circle cx="44" cy="14" r="3.4" fill="#0E1116"/><circle cx="76" cy="14" r="3.4" fill="#0E1116"/><rect x="38" y="40" width="13" height="10" rx="2" fill="#E5007E"/><rect x="56" y="40" width="13" height="10" rx="2" fill="#C9CFD6"/><rect x="38" y="56" width="13" height="10" rx="2" fill="#C9CFD6"/><rect x="56" y="56" width="13" height="10" rx="2" fill="#00A0D8"/></svg>`,
+ copias:`<svg viewBox="0 0 120 90"><rect x="28" y="12" width="46" height="58" rx="3" fill="#fff" stroke="#0E1116" stroke-width="2"/><rect x="42" y="22" width="46" height="58" rx="3" fill="#fff" stroke="#0E1116" stroke-width="2"/><path d="M50 40h30M50 50h30M50 60h18" stroke="#C9CFD6" stroke-width="3"/></svg>`,
+ corporea:`<svg viewBox="0 0 120 90"><path d="M22 28l10-8h30l-10 8z" fill="#C9CFD6" stroke="#0E1116" stroke-width="2" stroke-linejoin="round"/><rect x="22" y="28" width="30" height="36" rx="4" fill="#FFD100" stroke="#0E1116" stroke-width="2"/><path d="M62 28l10-8h30l-10 8z" fill="#C9CFD6" stroke="#0E1116" stroke-width="2" stroke-linejoin="round"/><rect x="62" y="28" width="30" height="36" rx="4" fill="#00A0D8" stroke="#0E1116" stroke-width="2"/></svg>`,
+ led:`<svg viewBox="0 0 120 90"><rect x="22" y="30" width="76" height="34" rx="5" fill="#0E1116"/><rect x="30" y="38" width="60" height="18" rx="4" fill="#FFD100"/><path d="M16 24l-7-7M104 24l7-7M60 20V9" stroke="#FFD100" stroke-width="3.4" stroke-linecap="round"/></svg>`,
+ mural:`<svg viewBox="0 0 120 90"><rect x="16" y="16" width="88" height="56" rx="3" fill="#EAF7FC" stroke="#0E1116" stroke-width="2"/><path d="M16 60l24-22 16 14 14-12 34 28" fill="none" stroke="#00A0D8" stroke-width="3"/><circle cx="40" cy="32" r="6" fill="#FFD100"/></svg>`,
+ invitacion:`<svg viewBox="0 0 120 90"><rect x="44" y="12" width="34" height="28" rx="3" fill="#fff" stroke="#E5007E" stroke-width="2"/><path d="M52 22h18M52 30h11" stroke="#E5007E" stroke-width="2.4"/><rect x="24" y="30" width="72" height="44" rx="4" fill="#fff" stroke="#0E1116" stroke-width="2"/><path d="M24 34l36 24 36-24" fill="none" stroke="#0E1116" stroke-width="2"/></svg>`,
+ chapa:`<svg viewBox="0 0 120 90"><circle cx="60" cy="46" r="25" fill="#00A0D8" stroke="#0E1116" stroke-width="2"/><circle cx="60" cy="46" r="17" fill="none" stroke="#fff" stroke-width="2.4"/><path d="M60 21V10" stroke="#0E1116" stroke-width="3" stroke-linecap="round"/><circle cx="60" cy="46" r="5" fill="#fff"/></svg>`,
+ diploma:`<svg viewBox="0 0 120 90"><rect x="26" y="14" width="64" height="46" rx="3" fill="#fff" stroke="#0E1116" stroke-width="2"/><path d="M36 28h44M36 38h44M36 48h26" stroke="#C9CFD6" stroke-width="3"/><circle cx="80" cy="58" r="9" fill="#E5007E" stroke="#0E1116" stroke-width="2"/><path d="M74 66l-4 14 10-5 10 5-4-14" fill="#E5007E" stroke="#0E1116" stroke-width="2" stroke-linejoin="round"/></svg>`,
+ vaso:`<svg viewBox="0 0 120 90"><path d="M42 20h36l-5 52a7 7 0 0 1-7 6H54a7 7 0 0 1-7-6z" fill="#fff" stroke="#0E1116" stroke-width="2"/><rect x="49" y="38" width="22" height="15" rx="2" fill="#E5007E"/></svg>`,
+ paraguas:`<svg viewBox="0 0 120 90"><path d="M20 48a40 28 0 0 1 80 0z" fill="#00A0D8" stroke="#0E1116" stroke-width="2" stroke-linejoin="round"/><path d="M20 48a13 12 0 0 1 20 0 13 12 0 0 1 20 0 13 12 0 0 1 20 0 13 12 0 0 1 20 0" fill="none" stroke="#0E1116" stroke-width="2"/><path d="M60 48v20a9 9 0 0 0 18 0" fill="none" stroke="#0E1116" stroke-width="3.4"/></svg>`,
+ delantal:`<svg viewBox="0 0 120 90"><path d="M46 16h28l-2 11a17 17 0 0 1 14 17v30H34V44a17 17 0 0 1 14-17z" fill="#fff" stroke="#0E1116" stroke-width="2" stroke-linejoin="round"/><rect x="50" y="46" width="20" height="15" rx="2" fill="#FFD100"/></svg>`,
+ botella:`<svg viewBox="0 0 120 90"><rect x="52" y="10" width="16" height="12" rx="3" fill="#0E1116"/><path d="M50 22h20v10l6 8v34a6 6 0 0 1-6 6H50a6 6 0 0 1-6-6V40l6-8z" fill="#fff" stroke="#0E1116" stroke-width="2" stroke-linejoin="round"/><rect x="49" y="44" width="22" height="16" rx="2" fill="#00A0D8"/></svg>`,
+ carta:`<svg viewBox="0 0 120 90"><rect x="30" y="14" width="60" height="62" rx="3" fill="#fff" stroke="#0E1116" stroke-width="2"/><rect x="40" y="26" width="26" height="5" rx="2" fill="#0E1116"/><rect x="40" y="40" width="40" height="3" rx="1.5" fill="#C9CFD6"/><rect x="40" y="48" width="40" height="3" rx="1.5" fill="#C9CFD6"/><rect x="40" y="56" width="28" height="3" rx="1.5" fill="#E5007E"/></svg>`
+};
+const ART_KEYS = Object.keys(ART);
+
+/* ============================================================
+   2. DATOS INICIALES
+   ============================================================ */
+const PLAZO  = {id:'plazo', label:'Plazo', help:'Días laborables', ch:[{n:'Estándar 5–7 días',mult:1,add:0},{n:'Urgente 48 h',mult:1.18,add:0}]};
+const DISENO = {id:'diseno', label:'Diseño', help:'Arte final', ch:[{n:'Envío mi archivo',mult:1,add:0},{n:'Diseñadlo vosotros',mult:1,add:45}]};
+
+const DEMO = {
+  settings:{
+    marca:'Nuevo Impacto', sub:'SOLUCIONES GRÁFICAS',
+    claim:'Producción propia en Tomelloso · Entrega en 48 h si corre prisa',
+    kicker:'Offset · Serigrafía · Tampografía · Rotulación',
+    h1a:'Tu negocio,', h1b:'bien impreso.',
+    lead:'Tarjetas, flyers, camisetas, vinilos, rótulos y regalo publicitario con el precio cerrado antes de pedir. Lo fabricamos nosotros en Tomelloso, así que el plazo lo controlamos de principio a fin.',
+    desc:'Artes gráficas, textil y rotulación en Tomelloso. Offset, serigrafía, tampografía y sublimación.',
+    tel:'926 505 821', email:'pedidos@nuevoimpacto.es',
+    dir:'C/ Orense, 17', ciudad:'13700 Tomelloso, Ciudad Real',
+    horario:'L–V 9:00–14:00 · 17:00–20:00',
+    razon:'Nuevo Impacto Soluciones Gráficas S.L.',
+    iva:21, acento:'#E5007E', pin:'1234', reparto:'Tomelloso',
+    fb:null
+  },
+  cats:[
+    {id:'papeleria', nom:'Papelería e imprenta', sub:'Offset · digital', ico:'flyer'},
+    {id:'textil', nom:'Textil y ropa laboral', sub:'Serigrafía · bordado', ico:'camiseta'},
+    {id:'rotulacion', nom:'Rótulos y rotulación', sub:'Vinilo · corpóreas · led', ico:'rotulo'},
+    {id:'formato', nom:'Gran formato', sub:'Lonas · eventos', ico:'lona'},
+    {id:'regalo', nom:'Regalo publicitario', sub:'Tampografía · láser', ico:'mechero'},
+    {id:'celebra', nom:'Bodas y comuniones', sub:'Invitaciones · detalles', ico:'invitacion'},
+    {id:'penas', nom:'Peñas y despedidas', sub:'Feria · fiestas', ico:'panuelo'}
+  ],
+  opts:{
+    papeleria:[
+      {id:'acab', label:'Acabado', help:'', ch:[{n:'Sin plastificar',mult:1,add:0},{n:'Brillo',mult:1.08,add:0},{n:'Mate',mult:1.12,add:0},{n:'Soft touch',mult:1.22,add:0}]},
+      {id:'caras', label:'Impresión', help:'', ch:[{n:'1 cara',mult:1,add:0},{n:'2 caras',mult:1.15,add:0}]},
+      clone(PLAZO), clone(DISENO)
+    ],
+    textil:[
+      {id:'tec', label:'Técnica', help:'', ch:[{n:'Serigrafía 1 tinta',mult:1,add:0},{n:'Serigrafía 2 tintas',mult:1.18,add:0},{n:'DTF full color',mult:1.35,add:0},{n:'Bordado',mult:1.4,add:0}]},
+      {id:'pos', label:'Ubicación del marcaje', help:'', ch:[{n:'Pecho',mult:1,add:0},{n:'Pecho y espalda',mult:1.3,add:0},{n:'Pecho, espalda y manga',mult:1.45,add:0}]},
+      clone(PLAZO), clone(DISENO)
+    ],
+    rotulacion:[
+      {id:'mat', label:'Material', help:'', ch:[{n:'Vinilo monomérico',mult:1,add:0},{n:'Vinilo polimérico',mult:1.16,add:0},{n:'Microperforado',mult:1.24,add:0}]},
+      {id:'inst', label:'Instalación', help:'', ch:[{n:'Solo el material',mult:1,add:0},{n:'Colocado por nosotros',mult:1.28,add:0}]},
+      clone(PLAZO), clone(DISENO)
+    ],
+    formato:[
+      {id:'acabf', label:'Acabado', help:'', ch:[{n:'Ojales perimetrales',mult:1,add:0},{n:'Bolsillo para barra',mult:1.07,add:0},{n:'Refuerzo y ojales',mult:1.14,add:0}]},
+      clone(PLAZO), clone(DISENO)
+    ],
+    regalo:[
+      {id:'marc', label:'Marcaje', help:'', ch:[{n:'Tampografía',mult:1,add:0},{n:'Grabado láser',mult:1.12,add:0},{n:'Full color UV',mult:1.25,add:0}]},
+      {id:'car', label:'Caras marcadas', help:'', ch:[{n:'1 cara',mult:1,add:0},{n:'2 caras',mult:1.2,add:0}]},
+      clone(PLAZO), clone(DISENO)
+    ],
+    celebra:[
+      {id:'acabc', label:'Acabado', help:'', ch:[{n:'Sin plastificar',mult:1,add:0},{n:'Mate',mult:1.12,add:0},{n:'Estampación en oro',mult:1.34,add:0},{n:'Relieve',mult:1.4,add:0}]},
+      {id:'sobre', label:'Sobre', help:'Solo impresos en papel', ch:[{n:'Sin sobre',mult:1,add:0},{n:'Con sobre blanco',mult:1.12,add:0},{n:'Con sobre forrado',mult:1.26,add:0}]},
+      clone(PLAZO), clone(DISENO)
+    ],
+    penas:[
+      {id:'tin', label:'Tintas', help:'', ch:[{n:'1 tinta',mult:1,add:0},{n:'2 tintas',mult:1.16,add:0},{n:'Full color',mult:1.32,add:0}]},
+      clone(PLAZO), clone(DISENO)
+    ]
+  },
+  products:[
+    {id:'p01',cat:'papeleria',nom:'Tarjetas de visita',art:'tarjeta',tech:'Offset · 350 g',desc:'85×55 mm en cartulina estucada de 350 g, cortadas a filo.',tiers:[[100,22,''],[250,29,''],[500,39,''],[1000,55,'']],badge:'Más pedido',on:true},
+    {id:'p02',cat:'papeleria',nom:'Flyers A5',art:'flyer',tech:'Offset · 135 g',desc:'A5 en couché de 135 g. El clásico para promociones y buzoneo.',tiers:[[250,39,''],[500,52,''],[1000,75,''],[2500,135,'']],badge:'',on:true},
+    {id:'p03',cat:'papeleria',nom:'Dípticos A4 plegados',art:'carta',tech:'Offset · 170 g',desc:'A4 cerrado a A5, con hendido para que el plegado no cuartee.',tiers:[[250,95,''],[500,135,''],[1000,195,'']],badge:'',on:true},
+    {id:'p04',cat:'papeleria',nom:'Talonarios autocopiativos',art:'talonario',tech:'Digital · 2 copias',desc:'Numerados y encolados, en juegos de 50 hojas por talonario.',tiers:[[5,78,'5 talonarios'],[10,125,'10 talonarios'],[25,265,'25 talonarios']],badge:'',on:true},
+    {id:'p05',cat:'papeleria',nom:'Carpetas con solapa',art:'carta',tech:'Offset · 300 g',desc:'Dos solapas y ranura para tarjeta. Para presupuestos y dosieres.',tiers:[[100,145,''],[250,245,''],[500,390,'']],badge:'',on:true},
+    {id:'p06',cat:'papeleria',nom:'Sobres con membrete',art:'flyer',tech:'Offset · 90 g',desc:'Americanos 220×110, con o sin ventanilla.',tiers:[[250,48,''],[500,72,''],[1000,110,'']],badge:'',on:true},
+    {id:'p07',cat:'papeleria',nom:'Sellos de caucho automáticos',art:'sello',tech:'Entintado automático',desc:'Con tu razón social, NIF y dirección. Recambio de tinta aparte.',tiers:[[1,24,'1 sello'],[3,62,'3 sellos'],[5,95,'5 sellos']],badge:'',on:true},
+    {id:'p08',cat:'papeleria',nom:'Calendarios de pared',art:'calendario',tech:'Offset · faldilla',desc:'De pared con faldilla o de sobremesa, con tu logo cada mes.',tiers:[[50,135,''],[100,220,''],[250,460,'']],badge:'',on:true},
+    {id:'p09',cat:'papeleria',nom:'Pegatinas troqueladas',art:'adhesivo',tech:'Vinilo adhesivo',desc:'Corte a la forma que quieras, para interior o intemperie.',tiers:[[100,35,''],[250,58,''],[500,85,''],[1000,140,'']],badge:'',on:true},
+    {id:'p10',cat:'papeleria',nom:'Cartas de bar plastificadas',art:'carta',tech:'Digital · plastificado',desc:'A4 o A3 plastificado en brillo, aguanta la barra y el trapo.',tiers:[[10,85,''],[25,160,''],[50,290,'']],badge:'',on:true},
+    {id:'p11',cat:'papeleria',nom:'Fotocopias e impresión digital',art:'copias',tech:'Blanco y negro · A4',desc:'Copias sueltas o tiradas cortas, en el día si es poca cosa.',tiers:[[100,9,'100 copias'],[500,38,'500 copias'],[1000,70,'1.000 copias'],[5000,300,'5.000 copias']],badge:'Imprenta rápida',on:true},
+    {id:'p12',cat:'papeleria',nom:'Encuadernación de proyectos',art:'copias',tech:'Wire-o · canutillo',desc:'Impresión y encuadernado de memorias, TFG y proyectos.',tiers:[[5,45,'5 ejemplares'],[10,80,'10 ejemplares'],[25,175,'25 ejemplares']],badge:'',on:true},
+    {id:'p13',cat:'textil',nom:'Camisetas serigrafiadas',art:'camiseta',tech:'Serigrafía · algodón',desc:'Algodón de 165 g. Tinta al agua que no acartona el tejido.',tiers:[[20,118,''],[50,245,''],[100,420,''],[200,760,'']],badge:'Desde 20 ud.',on:true},
+    {id:'p14',cat:'textil',nom:'Camisetas en DTF a todo color',art:'camiseta',tech:'DTF · tirada corta',desc:'Para diseños con degradados o fotos, sin mínimo de tirada alta.',tiers:[[10,95,''],[25,195,''],[50,350,'']],badge:'',on:true},
+    {id:'p15',cat:'textil',nom:'Sudaderas bordadas',art:'sudadera',tech:'Bordado · 280 g',desc:'Con capucha y bolsillo canguro. Bordado hasta 8.000 puntadas.',tiers:[[10,195,''],[25,435,''],[50,790,'']],badge:'',on:true},
+    {id:'p16',cat:'textil',nom:'Polos de trabajo',art:'camiseta',tech:'Bordado · piqué',desc:'Piqué de 200 g con tu logo al pecho. Tallas de S a 3XL.',tiers:[[10,155,''],[25,350,''],[50,640,'']],badge:'',on:true},
+    {id:'p17',cat:'textil',nom:'Chaquetas softshell',art:'sudadera',tech:'Bordado · cortavientos',desc:'Impermeable y transpirable, para el equipo que trabaja fuera.',tiers:[[5,185,''],[10,340,''],[25,780,'']],badge:'',on:true},
+    {id:'p18',cat:'textil',nom:'Pantalones y buzos de trabajo',art:'delantal',tech:'Serigrafía · multibolsillos',desc:'Ropa de faena marcada con el nombre de la empresa.',tiers:[[5,145,''],[10,275,''],[25,620,'']],badge:'',on:true},
+    {id:'p19',cat:'textil',nom:'Chalecos de alta visibilidad',art:'camiseta',tech:'Serigrafía · EN ISO 20471',desc:'Reflectante homologado, marcado en pecho y espalda.',tiers:[[10,145,''],[25,320,''],[50,590,'']],badge:'',on:true},
+    {id:'p20',cat:'textil',nom:'Gorras bordadas',art:'gorra',tech:'Bordado · 5 paneles',desc:'Visera curva o plana, cierre regulable.',tiers:[[25,175,''],[50,320,''],[100,590,'']],badge:'',on:true},
+    {id:'p21',cat:'textil',nom:'Delantales de hostelería',art:'delantal',tech:'Serigrafía · loneta',desc:'Peto o cintura, en loneta resistente a lavados fuertes.',tiers:[[10,125,''],[25,265,''],[50,480,'']],badge:'',on:true},
+    {id:'p22',cat:'textil',nom:'Bolsas de tela',art:'bolsa',tech:'Serigrafía · algodón',desc:'Tote bag de algodón de 140 g con asas largas.',tiers:[[50,165,''],[100,290,''],[250,650,'']],badge:'',on:true},
+    {id:'p23',cat:'rotulacion',nom:'Vinilo de escaparate',art:'vinilo',tech:'Corte · por m²',desc:'Letras y logos en vinilo de corte, colocados sobre el cristal.',tiers:[[1,28,'1 m²'],[3,75,'3 m²'],[5,115,'5 m²'],[10,215,'10 m²']],badge:'',on:true},
+    {id:'p24',cat:'rotulacion',nom:'Rótulo de fachada',art:'rotulo',tech:'Dibond · impresión',desc:'Panel en dibond a medida, con o sin marco perimetral.',tiers:[[2,260,'Hasta 2 m²'],[4,470,'Hasta 4 m²'],[6,650,'Hasta 6 m²']],badge:'A medida',on:true},
+    {id:'p25',cat:'rotulacion',nom:'Letras corpóreas',art:'corporea',tech:'PVC · metacrilato',desc:'Letras recortadas en volumen, pegadas o sobre bastidor.',tiers:[[1,120,'Hasta 30 cm'],[2,210,'Hasta 50 cm'],[3,340,'Hasta 80 cm']],badge:'',on:true},
+    {id:'p26',cat:'rotulacion',nom:'Rótulo luminoso led',art:'led',tech:'Led · metacrilato',desc:'Cajón de luz o corpóreas retroiluminadas. Bajo consumo.',tiers:[[2,540,'Hasta 2 m²'],[4,890,'Hasta 4 m²'],[6,1250,'Hasta 6 m²']],badge:'',on:true},
+    {id:'p27',cat:'rotulacion',nom:'Rotulación de vehículo',art:'furgoneta',tech:'Vinilo · instalación',desc:'De la puerta con el logo al vinilado integral de la furgoneta.',tiers:[[1,450,'Parcial'],[2,780,'Media'],[3,1200,'Integral']],badge:'',on:true},
+    {id:'p28',cat:'rotulacion',nom:'Vinilo decorativo y fotomural',art:'mural',tech:'Impresión · por m²',desc:'Para paredes de oficina, clínica o habitación infantil.',tiers:[[2,95,'2 m²'],[5,210,'5 m²'],[10,380,'10 m²']],badge:'',on:true},
+    {id:'p29',cat:'rotulacion',nom:'Placas y señalética',art:'cartel',tech:'Dibond · metacrilato',desc:'Placas de puerta, aforos, direcciones y señales de obligación.',tiers:[[5,65,''],[10,110,''],[25,235,'']],badge:'',on:true},
+    {id:'p30',cat:'rotulacion',nom:'Vinilo de suelo antideslizante',art:'adhesivo',tech:'Laminado · clase R10',desc:'Para recorridos, distancias y publicidad en el pavimento.',tiers:[[1,45,'1 m²'],[3,120,'3 m²'],[5,190,'5 m²']],badge:'',on:true},
+    {id:'p31',cat:'formato',nom:'Lona publicitaria',art:'lona',tech:'Lona 510 g · ojales',desc:'Impresión en lona con ojales cada 50 cm. Para intemperie.',tiers:[[2,38,'2 m²'],[6,95,'6 m²'],[12,170,'12 m²'],[24,310,'24 m²']],badge:'',on:true},
+    {id:'p32',cat:'formato',nom:'Pancartas',art:'lona',tech:'Lona · dobladillo',desc:'Con dobladillo y ojales reforzados, para colgar entre balcones.',tiers:[[1,58,'2×1 m'],[2,110,'3×1 m'],[3,165,'4×1 m']],badge:'',on:true},
+    {id:'p33',cat:'formato',nom:'Photocall',art:'lona',tech:'Lona mate · estructura',desc:'2×2 m en lona mate sin reflejos, con estructura desmontable.',tiers:[[1,245,'1 unidad'],[2,460,'2 unidades']],badge:'Eventos',on:true},
+    {id:'p34',cat:'formato',nom:'Roll-up 85×200',art:'rollup',tech:'Enrollable · bolsa',desc:'Estructura de aluminio, gráfica recambiable y bolsa de transporte.',tiers:[[1,79,''],[3,210,''],[5,330,'']],badge:'',on:true},
+    {id:'p35',cat:'formato',nom:'Carteles en PVC y foam',art:'cartel',tech:'PVC 3 mm · rígido',desc:'Rígidos en A1 o A0, listos para colgar o poner en caballete.',tiers:[[5,65,''],[10,110,''],[25,235,'']],badge:'',on:true},
+    {id:'p36',cat:'formato',nom:'Banderolas y banderas',art:'lona',tech:'Sublimación · poliéster',desc:'Poliéster sublimado, el color pasa al otro lado de la tela.',tiers:[[5,140,''],[10,240,''],[25,520,'']],badge:'',on:true},
+    {id:'p37',cat:'formato',nom:'Expositores de cartón',art:'rollup',tech:'Cartón · montaje',desc:'Displays de suelo o mostrador para punto de venta.',tiers:[[5,180,''],[10,320,''],[25,690,'']],badge:'',on:true},
+    {id:'p38',cat:'regalo',nom:'Mecheros grabados',art:'mechero',tech:'Tampografía · láser',desc:'El detalle que más se queda en el bolsillo del cliente.',tiers:[[100,95,''],[250,195,''],[500,350,''],[1000,620,'']],badge:'',on:true},
+    {id:'p39',cat:'regalo',nom:'Llaveros personalizados',art:'llavero',tech:'Metal · metacrilato',desc:'Metal grabado o metacrilato impreso a todo color.',tiers:[[100,130,''],[250,265,''],[500,470,'']],badge:'',on:true},
+    {id:'p40',cat:'regalo',nom:'Memorias USB grabadas',art:'usb',tech:'Láser · 16 GB',desc:'16 GB con tu marca grabada. Podemos precargar tu catálogo.',tiers:[[50,330,''],[100,590,''],[250,1350,'']],badge:'',on:true},
+    {id:'p41',cat:'regalo',nom:'Bolígrafos',art:'boli',tech:'Tampografía',desc:'Tinta azul, marcaje en el cuerpo. El bajo coste que funciona.',tiers:[[250,145,''],[500,255,''],[1000,450,'']],badge:'',on:true},
+    {id:'p42',cat:'regalo',nom:'Tazas sublimadas',art:'taza',tech:'Sublimación · full color',desc:'Cerámica blanca a todo color, apta para lavavajillas.',tiers:[[25,135,''],[50,245,''],[100,440,'']],badge:'',on:true},
+    {id:'p43',cat:'regalo',nom:'Botellas térmicas grabadas',art:'botella',tech:'Láser · acero inoxidable',desc:'Doble pared, 500 ml. Regalo de empresa que se usa a diario.',tiers:[[25,320,''],[50,595,''],[100,1090,'']],badge:'',on:true},
+    {id:'p44',cat:'regalo',nom:'Power banks',art:'usb',tech:'Láser · 5.000 mAh',desc:'Batería externa con tu logo grabado y cable incluido.',tiers:[[25,385,''],[50,720,'']],badge:'',on:true},
+    {id:'p45',cat:'regalo',nom:'Paraguas',art:'paraguas',tech:'Serigrafía · automático',desc:'Automático, con tu marca en uno o varios paneles.',tiers:[[25,265,''],[50,490,''],[100,900,'']],badge:'',on:true},
+    {id:'p46',cat:'celebra',nom:'Invitaciones de boda',art:'invitacion',tech:'Offset · cartulina',desc:'Impresas en cartulina de calidad, con sobre a juego si quieres.',tiers:[[50,125,''],[100,195,''],[200,330,'']],badge:'Bodas',on:true},
+    {id:'p47',cat:'celebra',nom:'Minutas y seating plan',art:'carta',tech:'Digital · cartulina',desc:'Menús para cada sitio y panel con la distribución de mesas.',tiers:[[50,85,''],[100,140,''],[200,240,'']],badge:'',on:true},
+    {id:'p48',cat:'celebra',nom:'Recordatorios de comunión',art:'invitacion',tech:'Digital · estampas',desc:'Estampas y recordatorios con la foto del niño y la fecha.',tiers:[[50,68,''],[100,110,''],[200,180,'']],badge:'',on:true},
+    {id:'p49',cat:'celebra',nom:'Chapas personalizadas',art:'chapa',tech:'Chapa metálica · 58 mm',desc:'Para detalles de mesa, bautizos y regalos de invitados.',tiers:[[50,55,''],[100,90,''],[250,190,'']],badge:'',on:true},
+    {id:'p50',cat:'celebra',nom:'Abanicos personalizados',art:'panuelo',tech:'Serigrafía · madera',desc:'El detalle que salva la boda de agosto en La Mancha.',tiers:[[50,145,''],[100,250,''],[200,450,'']],badge:'',on:true},
+    {id:'p51',cat:'celebra',nom:'Bolsas de detalle',art:'bolsa',tech:'Serigrafía · papel o tela',desc:'Para los obsequios de los invitados, con nombres y fecha.',tiers:[[50,165,''],[100,290,''],[250,620,'']],badge:'',on:true},
+    {id:'p52',cat:'celebra',nom:'Photocall de boda',art:'lona',tech:'Lona mate · estructura',desc:'Con vuestros nombres y la fecha, para la barra libre.',tiers:[[1,245,'1 unidad'],[2,460,'2 unidades']],badge:'',on:true},
+    {id:'p53',cat:'celebra',nom:'Orlas y diplomas de colegio',art:'diploma',tech:'Digital · cartulina',desc:'Orlas de fin de curso, diplomas y recordatorios de graduación.',tiers:[[25,135,''],[50,230,''],[100,410,'']],badge:'Colegios',on:true},
+    {id:'p54',cat:'celebra',nom:'Camisetas de fin de curso',art:'camiseta',tech:'Serigrafía · algodón',desc:'Con la promoción, los apodos de la clase y el año.',tiers:[[25,165,''],[50,295,''],[100,520,'']],badge:'',on:true},
+    {id:'p55',cat:'penas',nom:'Pañuelos de peña',art:'panuelo',tech:'Serigrafía · algodón',desc:'55×55 cm con el nombre y el escudo de la peña.',tiers:[[50,175,''],[100,290,''],[250,590,'']],badge:'Feria',on:true},
+    {id:'p56',cat:'penas',nom:'Camisetas de peña',art:'camiseta',tech:'Serigrafía · 2 tintas',desc:'Diseño delante y detrás, con hueco para el nombre de cada uno.',tiers:[[50,295,''],[100,490,''],[200,890,'']],badge:'',on:true},
+    {id:'p57',cat:'penas',nom:'Petos de despedida',art:'camiseta',tech:'DTF · tirada corta',desc:'Con la foto del novio o la novia, que es de lo que se trata.',tiers:[[10,95,''],[25,210,''],[50,390,'']],badge:'Despedidas',on:true},
+    {id:'p58',cat:'penas',nom:'Bandas de despedida',art:'panuelo',tech:'Serigrafía · raso',desc:'Bandas de raso con el texto que os apetezca.',tiers:[[10,68,''],[25,145,''],[50,265,'']],badge:'',on:true},
+    {id:'p59',cat:'penas',nom:'Banderas de peña',art:'lona',tech:'Sublimación · poliéster',desc:'Bandera grande para el local y la caseta de feria.',tiers:[[5,140,''],[10,240,''],[25,520,'']],badge:'',on:true},
+    {id:'p60',cat:'penas',nom:'Vasos reutilizables',art:'vaso',tech:'Serigrafía · PP reutilizable',desc:'Vasos de fiesta con el escudo, para barra de peña o verbena.',tiers:[[100,135,''],[250,295,''],[500,540,'']],badge:'',on:true},
+    {id:'p61',cat:'penas',nom:'Etiquetas de vino',art:'etiqueta',tech:'Adhesivo · estucado',desc:'Para bodegas y para botellas de recuerdo con la fecha.',tiers:[[500,110,''],[1000,175,''],[2500,320,'']],badge:'',on:true}
+  ],
+  perks:[
+    {t:'Revisamos tu arte final', s:'Sin coste, antes de entrar en máquina.'},
+    {t:'Urgencias en 48 h', s:'Consúltanos antes de las 12:00.'},
+    {t:'Reparto en la comarca', s:'Tomelloso y alrededores, sin gastos.'},
+    {t:'Fabricación propia', s:'Nada se subcontrata a ciegas.'}
+  ],
+  pasos:[
+    {t:'Pides y envías arte', s:'Configuras la tirada aquí y subes tu PDF. Si no tienes arte, lo diseñamos nosotros.'},
+    {t:'Comprobamos el archivo', s:'Sangres, resolución, tintas y textos. Si algo baila, te lo decimos antes de imprimir.'},
+    {t:'Apruebas la prueba', s:'Recibes una prueba digital o de color. Hasta que no dices sí, no entra en máquina.'},
+    {t:'Producción y entrega', s:'Imprimimos, acabamos y te lo llevamos, o lo recoges en el taller.'}
+  ],
+  tecnicas:[
+    {t:'Offset', s:'Tiradas medias y largas en papel con color estable y coste por unidad bajo.'},
+    {t:'Serigrafía', s:'Textil y soportes rígidos. Tintas sólidas que aguantan lavados.'},
+    {t:'Tampografía', s:'Marcaje en objetos pequeños o curvos: bolígrafos, mecheros, llaveros.'},
+    {t:'Sublimación', s:'Full color sobre poliéster y rígidos: tazas, banderolas, deportivo.'},
+    {t:'Corte de vinilo', s:'Escaparates, vehículos, rótulos y letras sueltas a medida.'}
+  ],
+  sectores:[
+    {t:'Hostelería y bares', s:'Lo primero que se gasta y lo último que se cambia: la carta. Reponemos las mismas cada temporada sin volver a maquetar.', l:'Cartas plastificadas · Delantales · Vasos reutilizables · Toldo y rótulo · Vinilo de escaparate'},
+    {t:'Bodegas y agroalimentario', s:'Etiquetas por tirada corta para vinos de autor y campañas, y rotulación para naves y remolques.', l:'Etiquetas de vino · Cajas y contraetiqueta · Rotulación de nave · Ropa de campo'},
+    {t:'Talleres y construcción', s:'Ropa que aguanta el lavado industrial y furgonetas que se ven desde la carretera.', l:'Buzos y pantalones · Chalecos reflectantes · Rotulación de vehículo · Señalética de obra'},
+    {t:'Comercio y tienda', s:'Del rótulo de la fachada a la bolsa con la que sale el cliente, todo con la misma tipografía.', l:'Rótulo y corpóreas · Vinilo de rebajas · Bolsas · Tarjetas y adhesivos'},
+    {t:'Colegios y AMPA', s:'Campañas de fin de curso y material del centro, con facturación a nombre del AMPA si hace falta.', l:'Camisetas de promoción · Orlas y diplomas · Agendas · Cartelería'},
+    {t:'Peñas, bodas y despedidas', s:'La temporada fuerte de Tomelloso. Cuanto antes lo cerremos, menos prisas en agosto.', l:'Pañuelos y camisetas · Banderas · Invitaciones · Photocall · Petos y bandas'}
+  ],
+  specs:[
+    {t:'PDF con fuentes trazadas', s:'También aceptamos AI, EPS o CDR. Si solo tienes el logo en un Word o en una foto, lo redibujamos.', k:'Formato'},
+    {t:'3 mm de sangre por lado', s:'El corte nunca cae al milímetro. Sin sangre aparece un filo blanco en el borde.', k:'Márgenes'},
+    {t:'Color en CMYK', s:'La pantalla trabaja en RGB y la máquina en CMYK. Convertirlo nosotros a última hora cambia los tonos.', k:'Color'},
+    {t:'300 ppp a tamaño real', s:'En lonas y rótulos vale menos resolución, porque se miran de lejos. En papel no.', k:'Imágenes'}
+  ],
+  faq:[
+    {t:'¿En qué formato os mando el diseño?', s:'Lo ideal es un PDF con las fuentes convertidas a curvas. También trabajamos con AI, EPS, CDR o un JPG a 300 ppp. Si lo único que tienes es el logo pegado en un Word o una foto del rótulo antiguo, tráelo igual: lo redibujamos y te queda un archivo bueno para siempre.'},
+    {t:'¿Por qué me pedís sangre en el archivo?', s:'Porque la guillotina tiene una tolerancia de un par de milímetros. Si el fondo termina justo en el borde del documento, en algunos ejemplares aparece una línea blanca. Con 3 mm de fondo sobrante por cada lado eso no pasa.'},
+    {t:'¿Van a salir los colores como los veo en pantalla?', s:'Parecidos, no idénticos. La pantalla ilumina y el papel refleja, y hay colores en RGB que en CMYK no existen, sobre todo los azules y verdes muy vivos. En trabajos donde el color es crítico te sacamos una prueba impresa antes de tirar todo.'},
+    {t:'¿Cuánto tarda un pedido?', s:'De cinco a siete días laborables desde que apruebas la prueba, no desde que haces el pedido. En papelería sencilla solemos ir más rápido. Si vas justo, tenemos plazo de urgencia de 48 horas con un recargo; avísanos antes de las doce.'},
+    {t:'¿Cuál es el mínimo para camisetas?', s:'En serigrafía, veinte unidades: hay que preparar las pantallas y por debajo de esa cantidad el precio por camiseta se dispara. En DTF a todo color podemos bajar a diez, e incluso hacerte una suelta para una despedida.'},
+    {t:'¿Cuánto dura el vinilo del escaparate?', s:'El monomérico aguanta dos o tres años, que para una campaña de rebajas sobra. Para algo permanente y a pleno sol, mejor polimérico: cinco a siete años sin que amarillee ni se cuartee.'},
+    {t:'¿Hace falta permiso para poner un rótulo?', s:'En la mayoría de municipios el ayuntamiento pide una comunicación o licencia, y hay normas distintas según la calle. Nosotros te preparamos el plano con medidas y materiales para que lo presentes, pero la tramitación la hace la propiedad o su técnico.'},
+    {t:'No tengo diseño, ¿lo hacéis vosotros?', s:'Sí. En el configurador hay una opción de diseño con precio cerrado, y para trabajos más grandes lo presupuestamos aparte. Te entregamos también los archivos finales, que son tuyos.'}
+  ],
+  orders:[
+    {id:'NI-2026-0007', fecha:'2026-08-26', cliente:'Bar La Plaza', tel:'618 22 44 90', email:'barlaplaza@gmail.com', entrega:'Reparto', notas:'Para la feria, antes del día 5.', estado:'En producción',
+     lineas:[{nom:'Cartas de bar plastificadas',art:'carta',cant:'25 ud.',especs:'Brillo · 2 caras · Estándar 5–7 días · Envío mi archivo',archivo:'carta_verano.pdf',precio:184}], base:184},
+    {id:'NI-2026-0008', fecha:'2026-08-27', cliente:'Peña El Zurra', tel:'605 71 30 18', email:'penaelzurra@hotmail.com', entrega:'Recogida en taller', notas:'Escudo en dos tintas.', estado:'Nuevo',
+     lineas:[{nom:'Pañuelos de peña',art:'panuelo',cant:'250 ud.',especs:'2 tintas · Urgente 48 h · Envío mi archivo',archivo:'escudo_zurra.ai',precio:807.98},
+             {nom:'Camisetas de peña',art:'camiseta',cant:'100 ud.',especs:'2 tintas · Estándar 5–7 días · Envío mi archivo',archivo:'',precio:568.4}], base:1376.38}
+  ],
+  consultas:[]
+};
+
+/* ============================================================
+   3. ALMACENAMIENTO
+   ============================================================ */
+const KEY = 'nuevoimpacto_v3';
+let DB;
+try{
+  const raw = localStorage.getItem(KEY);
+  DB = raw ? JSON.parse(raw) : clone(DEMO);
+}catch(e){ DB = clone(DEMO); }
+// completa claves que falten si el guardado viene de una versión anterior
+['settings','cats','opts','products','perks','pasos','tecnicas','sectores','specs','faq','orders','consultas'].forEach(k=>{
+  if(DB[k]===undefined) DB[k] = clone(DEMO[k]);
+});
+
+let guardando = null;
+function save(pintar=true){
+  try{ localStorage.setItem(KEY, JSON.stringify(DB)); }catch(e){ toast('No se ha podido guardar en este navegador'); }
+  clearTimeout(guardando);
+  guardando = setTimeout(fbPush, 400);
+  if(pintar) renderTienda();
+}
+
+/* --- cesta (aparte de la base de datos del negocio) --- */
+const CKEY = 'nuevoimpacto_cesta_v2';
+let cesta = [];
+try{ cesta = JSON.parse(localStorage.getItem(CKEY)) || []; }catch(e){ cesta = []; }
+const saveCesta = ()=>{ try{ localStorage.setItem(CKEY, JSON.stringify(cesta)); }catch(e){} };
+
+/* ============================================================
+   4. SINCRONIZACIÓN OPCIONAL CON FIRESTORE
+   ============================================================ */
+let fb = {app:null, db:null, ref:null, mods:null, listo:false, ignorar:false};
+
+async function fbInit(){
+  const cfg = DB.settings.fb;
+  if(!cfg){ syncEstado(false,'Solo este dispositivo'); return; }
+  try{
+    syncEstado(false,'Conectando…');
+    const appMod = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
+    const fsMod  = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    fb.mods = fsMod;
+    fb.app  = appMod.initializeApp(typeof cfg==='string' ? JSON.parse(cfg) : cfg);
+    fb.db   = fsMod.getFirestore(fb.app);
+    fb.ref  = fsMod.doc(fb.db, 'sitio', 'datos');
+    fsMod.onSnapshot(fb.ref, snap=>{
+      if(!snap.exists()) { fbPush(); return; }
+      const remoto = snap.data();
+      if(remoto && remoto.json && remoto.json !== JSON.stringify(DB)){
+        try{
+          DB = JSON.parse(remoto.json);
+          renderTienda();
+          if(!$('#admin').classList.contains('hidden')) admRender();
+          toast('Datos actualizados desde la nube');
+        }catch(e){}
+      }
+    }, err=> syncEstado(false,'Error de conexión'));
+    fb.listo = true;
+    syncEstado(true,'Sincronizado');
+  }catch(e){
+    fb.listo = false;
+    syncEstado(false,'Sin conexión con Firebase');
+  }
+}
+async function fbPush(){
+  if(!fb.listo) return;
+  try{ await fb.mods.setDoc(fb.ref, {json: JSON.stringify(DB), ts: Date.now()}); }
+  catch(e){ syncEstado(false,'No se ha podido subir'); }
+}
+function syncEstado(ok, txt){
+  const s = $('#sync'); if(!s) return;
+  s.classList.toggle('on', !!ok);
+  $('#sync-txt').textContent = txt;
+}
+
+/* ============================================================
+   5. TIENDA — render
+   ============================================================ */
+let filtro='todo', busca='';
+const catNom = id => (DB.cats.find(c=>c.id===id)||{}).nom || '—';
+const tierLabel = t => t[2] || (num(t[0]) + ' ud.');
+const activos = ()=> DB.products.filter(p=>p.on!==false);
+// Un producto es "por tirada" si el precio unitario no sube al crecer el tramo.
+// Si sube, los tramos son variantes (tamaños, tipos de rotulación...) y no tiene
+// sentido enseñar precio por unidad ni porcentaje de ahorro.
+const porTirada = p => p.tiers.every((t,i)=> i===0 ||
+  (t[1]/t[0]) <= (p.tiers[i-1][1]/p.tiers[i-1][0]) + 1e-9);
+// Si el producto tiene foto se usa la foto; si no, la ilustración vectorial.
+const foto = p => p.img
+  ? `<img src="${esc(p.img)}" alt="${esc(p.nom)}" loading="lazy">`
+  : (ART[p.art] || ART.flyer);
+
+function renderTienda(){
+  const s = DB.settings;
+  document.documentElement.style.setProperty('--acc', s.acento || '#E5007E');
+  document.title = `${s.marca} · Imprenta, textil y rotulación en ${s.reparto||'Tomelloso'}`;
+  $('#t-claim').textContent = s.claim;
+  $('#t-tel').textContent = s.tel;
+  $('#t-tel').href = 'tel:' + s.tel.replace(/\s/g,'');
+  $('#t-brand').setAttribute('aria-label', s.marca + ', inicio');
+  $('#f-sub').textContent = s.sub.toLowerCase();
+  $('#t-kicker').textContent = s.kicker;
+  $('#t-lead').textContent = s.lead;
+  $('#f-desc').textContent = s.desc;
+  $('#f-legal').textContent = `© ${new Date().getFullYear()} ${s.razon} · ${s.ciudad}`;
+
+  const t = `${esc(s.h1a)}<br>${esc(s.h1b)}`;
+  $('#t-h1').innerHTML =
+    `<span class="lyr abs lyr-c" aria-hidden="true">${t}</span>
+     <span class="lyr abs lyr-m" aria-hidden="true">${t}</span>
+     <span class="lyr abs lyr-y" aria-hidden="true">${t}</span>
+     <span class="lyr">${t}</span>`;
+
+  $('#t-perks').innerHTML = DB.perks.map(p=>`
+    <div class="perk">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--acc)" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.2l2.5 2.5 4.5-5"/></svg>
+      <span><b>${esc(p.t)}</b><span>${esc(p.s)}</span></span>
+    </div>`).join('');
+
+  $('#t-steps').innerHTML = DB.pasos.map((p,i)=>`
+    <div class="step"><div class="n">PASO 0${i+1}</div><b>${esc(p.t)}</b><p>${esc(p.s)}</p></div>`).join('');
+
+  $('#t-tecn').innerHTML = DB.tecnicas.map(x=>`<div><b>${esc(x.t)}</b><p>${esc(x.s)}</p></div>`).join('');
+
+  $('#t-datos').innerHTML = `
+    <div class="dato"><span class="k">Dirección</span><span class="v">${esc(s.dir)}<br>${esc(s.ciudad)}</span></div>
+    <div class="dato"><span class="k">Teléfono</span><span class="v"><a href="tel:${esc(s.tel.replace(/\s/g,''))}">${esc(s.tel)}</a></span></div>
+    <div class="dato"><span class="k">Correo</span><span class="v"><a href="mailto:${esc(s.email)}">${esc(s.email)}</a></span></div>
+    <div class="dato"><span class="k">Horario</span><span class="v">${esc(s.horario)}</span></div>`;
+
+  $('#f-contacto').innerHTML = `
+    <li>${esc(s.dir)} · ${esc(s.reparto)}</li>
+    <li><a href="tel:${esc(s.tel.replace(/\s/g,''))}">${esc(s.tel)}</a></li>
+    <li><a href="mailto:${esc(s.email)}">${esc(s.email)}</a></li>`;
+
+  $('#f-cats').innerHTML = DB.cats.slice(0,6).map(c=>
+    `<li><a href="#catalogo" data-jump="${c.id}">${esc(c.nom)}</a></li>`).join('');
+  $$('[data-jump]').forEach(a=> a.onclick = ()=>{ filtro=a.dataset.jump; busca=''; $('#q').value=''; pintarNav(); pintarGrid(); });
+
+  $('#f-tra').innerHTML = DB.cats.map(c=>`<option>${esc(c.nom)}</option>`).join('') + '<option>Otra cosa</option>';
+
+  $('#t-sectores').innerHTML = DB.sectores.map(x=>`
+    <article><h3>${esc(x.t)}</h3><p>${esc(x.s)}</p>
+    <div class="lista">${esc(x.l||'').split('·').map(v=>esc(v.trim())).filter(Boolean).join(' &middot; ')}</div></article>`).join('');
+
+  $('#t-specs').innerHTML = DB.specs.map(x=>`
+    <div><div class="k">${esc(x.k||'')}</div><b>${esc(x.t)}</b><p>${esc(x.s)}</p></div>`).join('');
+
+  $('#t-faq').innerHTML = DB.faq.map((x,i)=>`
+    <details${i===0?' open':''}><summary>${esc(x.t)}</summary><div class="resp">${esc(x.s)}</div></details>`).join('');
+
+  pintarNav(); pintarCats(); pintarGrid(); pintarDestacados(); pintarCesta();
+}
+
+/* Lo más pedido: los productos visibles que llevan distintivo puesto en el panel */
+function pintarDestacados(){
+  const l = activos().filter(p=>p.badge).slice(0,4);
+  const g = $('#t-dest');
+  if(!l.length){ $('#destacados').style.display='none'; return; }
+  $('#destacados').style.display='';
+  g.innerHTML='';
+  l.forEach(p=>{
+    const desde = Math.min(...p.tiers.map(t=>+t[1]));
+    const b=document.createElement('button'); b.className='card';
+    b.innerHTML=`<div class="thumb"><span class="badge">${esc(p.badge)}</span>${foto(p)}</div>
+      <div class="body"><span class="tech">${esc(p.tech)}</span><h3>${esc(p.nom)}</h3>
+      <p class="desc">${esc(p.desc)}</p>
+      <div class="price"><b>${eur(desde)}</b><span>${porTirada(p)?'desde ':''}${esc(tierLabel(p.tiers[0]))}</span></div></div>`;
+    b.onclick=()=>abrirProducto(p);
+    g.appendChild(b);
+  });
+}
+
+const SECCIONES = [
+  {href:'#sectores', nom:'Para tu sector'},
+  {href:'#proceso',  nom:'Cómo trabajamos'},
+  {href:'#faq',      nom:'Preguntas'},
+  {href:'#contacto', nom:'Contacto'}
+];
+function pintarNav(){
+  const nav = $('#catnav'); nav.innerHTML='';
+  [{id:'todo',nom:'Todo el catálogo'}, ...DB.cats].forEach(c=>{
+    const b=document.createElement('button');
+    b.textContent=c.nom;
+    b.setAttribute('aria-pressed', filtro===c.id);
+    b.onclick=()=>{
+      filtro=c.id; busca=''; $('#q').value='';
+      pintarNav(); pintarGrid();
+      $('#catalogo').scrollIntoView({behavior:'smooth', block:'start'});
+    };
+    nav.appendChild(b);
+  });
+  const sep = document.createElement('span'); sep.className='sep'; nav.appendChild(sep);
+  SECCIONES.forEach(s=>{
+    const a = document.createElement('a');
+    a.className='main'; a.href=s.href; a.textContent=s.nom;
+    nav.appendChild(a);
+  });
+}
+function pintarCats(){
+  const g=$('#cat-grid'); g.innerHTML='';
+  DB.cats.forEach(c=>{
+    const b=document.createElement('button');
+    b.className='cat-tile';
+    b.innerHTML=`<div class="ico">${ART[c.ico]||ART.flyer}</div><b>${esc(c.nom)}</b><span>${esc(c.sub)}</span>`;
+    b.onclick=()=>{ filtro=c.id; busca=''; $('#q').value=''; pintarNav(); pintarGrid(); $('#catalogo').scrollIntoView({behavior:'smooth'}); };
+    g.appendChild(b);
+  });
+}
+function pintarGrid(){
+  const g=$('#grid');
+  const cat = DB.cats.find(c=>c.id===filtro);
+  $('#cat-title').textContent = cat ? cat.nom : (busca ? 'Resultados' : 'Todos los productos');
+  const lista = activos().filter(p=>{
+    const okC = filtro==='todo' || p.cat===filtro;
+    const txt = (p.nom+' '+p.desc+' '+p.tech).toLowerCase();
+    return okC && (!busca || txt.includes(busca));
+  });
+  $('#cat-count').textContent = lista.length + (lista.length===1?' producto':' productos');
+  g.innerHTML='';
+  if(!lista.length){
+    g.innerHTML = `<div class="empty"><b>Aquí no hay nada con ese nombre</b>Prueba con otra palabra, o cuéntanoslo y lo presupuestamos a medida.<div style="margin-top:16px"><a class="btn" href="#contacto">Pedir presupuesto</a></div></div>`;
+    return;
+  }
+  lista.forEach(p=>{
+    const desde = Math.min(...p.tiers.map(t=>+t[1]));
+    const b=document.createElement('button'); b.className='card';
+    b.innerHTML=`<div class="thumb">${p.badge?`<span class="badge">${esc(p.badge)}</span>`:''}${foto(p)}</div>
+      <div class="body"><span class="tech">${esc(p.tech)}</span><h3>${esc(p.nom)}</h3>
+      <p class="desc">${esc(p.desc)}</p>
+      <div class="price"><b>${eur(desde)}</b><span>${porTirada(p)?'desde ':''}${esc(tierLabel(p.tiers[0]))}</span></div></div>`;
+    b.onclick=()=>abrirProducto(p);
+    g.appendChild(b);
+  });
+}
+
+/* ============================================================
+   6. FICHA DE PRODUCTO
+   ============================================================ */
+let actual=null, sel={}, selTier=0, archivo='', udActual=true;
+function grupos(cat){ return DB.opts[cat] || []; }
+function calcular(){
+  const t = actual.tiers[selTier];
+  let base = +t[1], add = 0;
+  grupos(actual.cat).forEach(o=>{
+    const c = o.ch[sel[o.id] ?? 0]; if(!c) return;
+    base *= (+c.mult || 1);
+    add  += (+c.add  || 0);
+  });
+  return {total: Math.round((base+add)*100)/100, qty:+t[0], label:tierLabel(t)};
+}
+function pintarPrecio(){
+  const r = calcular();
+  $('#m-price').textContent = eur(r.total);
+  $('#m-unit').textContent = udActual ? `sin IVA · ${eur(r.total/r.qty)} por unidad` : 'sin IVA';
+}
+function abrirProducto(p){
+  actual=p; selTier=0; sel={}; archivo=''; udActual=porTirada(p);
+  $('#m-title').textContent=p.nom;
+  $('#m-tech').textContent=p.tech;
+  $('#m-desc').textContent=p.desc;
+  $('#m-sku').textContent='REF ' + p.id.toUpperCase() + ' · ' + catNom(p.cat);
+  $('#m-art').innerHTML = foto(p);
+  $('#m-art').style.padding = p.img ? '0' : '26px';
+  const box=$('#m-opts'); box.innerHTML='';
+
+  const g0=document.createElement('div'); g0.className='opt-group';
+  g0.innerHTML=`<label class="head">${udActual?'Cantidad':'Alcance del trabajo'} <em>precio cerrado por tramo</em></label>`;
+  const tw=document.createElement('div'); tw.className='tiers';
+  const ref = (+p.tiers[0][1])/(+p.tiers[0][0]);
+  p.tiers.forEach((t,i)=>{
+    const ud=(+t[1])/(+t[0]);
+    const ah=Math.round((1-ud/ref)*100);
+    const b=document.createElement('button'); b.className='tier';
+    b.setAttribute('aria-pressed', i===0);
+    b.innerHTML=`${udActual&&ah>=5?`<span class="save">−${ah}%</span>`:''}<div class="q">${esc(tierLabel(t))}</div><div class="u">${udActual?`${eur(ud)} / ud.`:eur(t[1])}</div>`;
+    b.onclick=()=>{ selTier=i; [...tw.children].forEach((c,j)=>c.setAttribute('aria-pressed', j===i)); pintarPrecio(); };
+    tw.appendChild(b);
+  });
+  g0.appendChild(tw); box.appendChild(g0);
+
+  grupos(p.cat).forEach(o=>{
+    sel[o.id]=0;
+    const g=document.createElement('div'); g.className='opt-group';
+    g.innerHTML=`<label class="head">${esc(o.label)}${o.help?` <em>${esc(o.help)}</em>`:''}</label>`;
+    const w=document.createElement('div'); w.className='chips';
+    o.ch.forEach((c,i)=>{
+      const b=document.createElement('button'); b.className='chip';
+      b.textContent = c.n + (+c.add ? ` +${c.add} €` : '');
+      b.setAttribute('aria-pressed', i===0);
+      b.onclick=()=>{ sel[o.id]=i; [...w.children].forEach((x,j)=>x.setAttribute('aria-pressed', j===i)); pintarPrecio(); };
+      w.appendChild(b);
+    });
+    g.appendChild(w); box.appendChild(g);
+  });
+
+  const gf=document.createElement('div'); gf.className='opt-group';
+  gf.innerHTML=`<label class="head">Tu archivo <em>PDF, AI, EPS o JPG</em></label>
+    <label class="filebox" id="fbox"><b>Sube tu arte final</b>Lo revisamos antes de imprimir y te avisamos si algo no cuadra.<span class="pick">Elegir archivo</span><input type="file" id="finput"></label>`;
+  box.appendChild(gf);
+  gf.querySelector('#finput').onchange = e=>{
+    const f=e.target.files[0]; if(!f) return;
+    archivo=f.name;
+    gf.querySelector('#fbox b').textContent = f.name;
+    gf.querySelector('#fbox').childNodes[1].textContent = 'Archivo listo. Lo comprobamos y te enviamos la prueba.';
+  };
+
+  pintarPrecio(); abrirCapa('#modal');
+}
+$('#m-add').onclick=()=>{
+  const r=calcular();
+  const especs = grupos(actual.cat).map(o=>o.ch[sel[o.id]].n).join(' · ');
+  cesta.push({pid:actual.id, nom:actual.nom, art:actual.art, img:actual.img||'', cant:r.label, especs, archivo, precio:r.total});
+  saveCesta(); pintarCesta(); cerrarTodo();
+  toast(`${actual.nom} · ${r.label} en la cesta`);
+};
+
+/* ============================================================
+   7. CESTA Y PEDIDO
+   ============================================================ */
+function pintarCesta(){
+  $('#cart-count').textContent = cesta.length;
+  const body=$('#cart-body'), foot=$('#cart-foot');
+  if(!cesta.length){
+    body.innerHTML=`<div style="text-align:center;padding:46px 10px;color:var(--muted)">
+      <div style="margin:0 auto 16px;width:60px;opacity:.5">${ART.bolsa}</div>
+      <b style="display:block;font-family:var(--f-display);font-size:18px;color:var(--ink);margin-bottom:6px">Todavía no has añadido nada</b>
+      Configura un producto del catálogo y aparecerá aquí con su precio cerrado.</div>`;
+    foot.innerHTML=`<a class="btn block alt" href="#catalogo" data-close>Ir al catálogo</a>`;
+    enlazarCierres(); return;
+  }
+  body.innerHTML='';
+  cesta.forEach((it,i)=>{
+    const d=document.createElement('div'); d.className='cart-line';
+    d.innerHTML=`<div class="mini">${it.img?`<img src="${esc(it.img)}" alt="">`:(ART[it.art]||ART.flyer)}</div>
+      <div class="info"><b>${esc(it.nom)}</b><div class="spec">${esc(it.cant)} · ${esc(it.especs)}${it.archivo?`<br>Arte: ${esc(it.archivo)}`:''}</div></div>
+      <div class="side"><b>${eur(it.precio)}</b><button class="linkbtn" data-del="${i}">Quitar</button></div>`;
+    body.appendChild(d);
+  });
+  body.querySelectorAll('[data-del]').forEach(b=> b.onclick=()=>{ cesta.splice(+b.dataset.del,1); saveCesta(); pintarCesta(); });
+
+  const base = cesta.reduce((s,i)=>s+i.precio,0);
+  const iva = base*(DB.settings.iva/100);
+  foot.innerHTML=`
+    <div class="sumrow"><span>Base imponible</span><span>${eur(base)}</span></div>
+    <div class="sumrow"><span>IVA ${DB.settings.iva} %</span><span>${eur(iva)}</span></div>
+    <div class="sumrow"><span>Reparto en ${esc(DB.settings.reparto)}</span><span style="color:var(--ok);font-weight:600">Incluido</span></div>
+    <div class="sumrow total"><span>Total</span><span>${eur(base+iva)}</span></div>
+    <button class="btn pink block" id="tramitar" style="margin-top:14px">Tramitar pedido</button>
+    <button class="linkbtn" id="copiar" style="width:100%;margin-top:12px;text-align:center">Copiar el detalle</button>`;
+  $('#tramitar').onclick = abrirCheckout;
+  $('#copiar').onclick = async ()=>{
+    try{ await navigator.clipboard.writeText(textoPresupuesto()); toast('Detalle copiado'); }
+    catch(e){ toast('No se ha podido copiar'); }
+  };
+}
+function textoPresupuesto(){
+  const base=cesta.reduce((s,i)=>s+i.precio,0);
+  let t=`Solicitud de presupuesto — ${DB.settings.marca}\n\n`;
+  cesta.forEach((i,n)=>{
+    t+=`${n+1}. ${i.nom}\n   ${i.cant} · ${i.especs}\n`;
+    if(i.archivo) t+=`   Arte: ${i.archivo}\n`;
+    t+=`   ${eur(i.precio)}\n\n`;
+  });
+  t+=`Base imponible: ${eur(base)}\nIVA ${DB.settings.iva} %: ${eur(base*DB.settings.iva/100)}\nTotal: ${eur(base*(1+DB.settings.iva/100))}\n`;
+  return t;
+}
+function nuevoRef(){
+  const y=new Date().getFullYear();
+  const n=DB.orders.filter(o=>o.id.includes(String(y))).length + 9;
+  return `NI-${y}-${String(n).padStart(4,'0')}`;
+}
+function abrirCheckout(){
+  const base=cesta.reduce((s,i)=>s+i.precio,0);
+  dlg('Confirma tu pedido', `
+    <div class="field"><label for="c-nom">Nombre o empresa *</label><input id="c-nom" placeholder="Bar La Plaza"></div>
+    <div class="grid2">
+      <div class="field"><label for="c-tel">Teléfono *</label><input id="c-tel" placeholder="6XX XX XX XX"></div>
+      <div class="field"><label for="c-mail">Correo</label><input id="c-mail" placeholder="tucorreo@ejemplo.es"></div>
+    </div>
+    <div class="field"><label for="c-ent">Entrega</label><select id="c-ent"><option>Recogida en taller</option><option>Reparto</option><option>Envío por agencia</option></select></div>
+    <div class="field"><label for="c-not">Notas</label><textarea id="c-not" placeholder="Fecha límite, colores, tallas…"></textarea></div>
+    <div class="sumrow total" style="margin-top:4px"><span>Total con IVA</span><span>${eur(base*(1+DB.settings.iva/100))}</span></div>`,
+    `<span class="mono" style="font-size:12px;color:var(--muted)">${cesta.length} línea${cesta.length>1?'s':''}</span>
+     <button class="btn pink" id="c-ok">Enviar pedido</button>`);
+  $('#c-ok').onclick = ()=>{
+    const nom=$('#c-nom').value.trim(), tel=$('#c-tel').value.trim();
+    if(!nom || !tel){ toast('Necesitamos nombre y teléfono'); return; }
+    const ref=nuevoRef();
+    DB.orders.unshift({
+      id:ref, fecha:hoy(), cliente:nom, tel, email:$('#c-mail').value.trim(),
+      entrega:$('#c-ent').value, notas:$('#c-not').value.trim(), estado:'Nuevo',
+      lineas:clone(cesta), base:Math.round(base*100)/100
+    });
+    save(false);
+    cesta=[]; saveCesta(); pintarCesta();
+    dlg('Pedido recibido', `
+      <div style="text-align:center;padding:10px 0 4px">
+        <div style="width:54px;height:54px;border-radius:50%;background:var(--ok);display:grid;place-items:center;margin:0 auto 16px">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+        <h3 style="font-size:22px">Tu referencia es ${ref}</h3>
+        <p style="color:var(--muted);margin-top:10px;font-size:14.5px">Lo revisamos y te confirmamos plazo hoy mismo si es día laborable. Guarda la referencia para preguntar por él.</p>
+      </div>`, `<button class="btn block" data-close>Cerrar</button>`);
+    enlazarCierres();
+  };
+}
+
+/* ============================================================
+   8. CAPAS
+   ============================================================ */
+function abrirCapa(sel){ $('#overlay').classList.add('on'); $(sel).classList.add('on'); document.body.style.overflow='hidden'; }
+function cerrarTodo(){
+  $('#overlay').classList.remove('on');
+  ['#modal','#dlg','#drawer'].forEach(s=>$(s).classList.remove('on'));
+  document.body.style.overflow='';
+}
+function enlazarCierres(){ $$('[data-close]').forEach(b=> b.onclick=cerrarTodo); }
+function dlg(titulo, cuerpo, pie=''){
+  $('#dlg-title').textContent=titulo;
+  $('#dlg-body').innerHTML=cuerpo;
+  $('#dlg-foot').innerHTML=pie;
+  $('#dlg-foot').style.display = pie ? 'flex' : 'none';
+  abrirCapa('#dlg'); enlazarCierres();
+}
+$('#overlay').onclick=cerrarTodo;
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') cerrarTodo(); });
+$('#btn-cart').onclick=()=>abrirCapa('#drawer');
+$('#q').addEventListener('input', e=>{ busca=e.target.value.trim().toLowerCase(); if(busca) filtro='todo'; pintarNav(); pintarGrid(); });
+$('#f-send').onclick=()=>{
+  const nom=$('#f-nom').value.trim();
+  if(!nom){ $('#f-nom').focus(); toast('Necesitamos un nombre para responderte'); return; }
+  DB.consultas.unshift({id:uid(), fecha:hoy(), nom, contacto:$('#f-tel').value.trim(), trabajo:$('#f-tra').value, msg:$('#f-msg').value.trim(), leida:false});
+  save(false);
+  $('#f-nom').value=''; $('#f-tel').value=''; $('#f-msg').value='';
+  toast('Consulta enviada. Te respondemos hoy mismo.');
+};
+
+/* ============================================================
+   9. PANEL DE ADMINISTRACIÓN
+   ============================================================ */
+const ESTADOS=['Nuevo','Presupuestado','En producción','Entregado','Cancelado'];
+const ESTPILL={'Nuevo':'new','Presupuestado':'quo','En producción':'pro','Entregado':'don','Cancelado':'can'};
+let seccion='panel', admBusca='', admCat='todo', admEst='todo';
+
+$('#btn-admin').onclick=()=>{ $('#login').classList.remove('hidden'); setTimeout(()=>$('#pin').focus(),50); };
+$('#pin-x').onclick=()=>{ $('#login').classList.add('hidden'); $('#pin').value=''; };
+$('#pin-ok').onclick=entrar;
+$('#pin').addEventListener('keydown', e=>{ if(e.key==='Enter') entrar(); });
+function entrar(){
+  if($('#pin').value !== String(DB.settings.pin)){ toast('PIN incorrecto'); $('#pin').value=''; return; }
+  $('#pin').value='';
+  $('#login').classList.add('hidden');
+  sessionStorage.setItem('ni_admin','1');
+  abrirAdmin();
+}
+function abrirAdmin(){
+  cerrarTodo();
+  $('#admin').classList.remove('hidden');
+  $('#tienda').style.display='none';
+  document.body.style.overflow='hidden';
+  admRender();
+  fbInit();
+}
+$('#adm-ver').onclick=()=>{ $('#admin').classList.add('hidden'); $('#tienda').style.display=''; document.body.style.overflow=''; renderTienda(); };
+$('#adm-out').onclick=()=>{ sessionStorage.removeItem('ni_admin'); $('#adm-ver').onclick(); toast('Sesión cerrada'); };
+if(sessionStorage.getItem('ni_admin')==='1') setTimeout(abrirAdmin,0);
+if(location.hash==='#admin') $('#login').classList.remove('hidden');
+
+const SECS=[
+  {g:'Negocio'},
+  {id:'panel', nom:'Resumen'},
+  {id:'pedidos', nom:'Pedidos'},
+  {id:'consultas', nom:'Consultas'},
+  {g:'Catálogo'},
+  {id:'productos', nom:'Productos'},
+  {id:'cats', nom:'Categorías'},
+  {id:'opciones', nom:'Opciones y recargos'},
+  {g:'Web'},
+  {id:'contenido', nom:'Textos de la web'},
+  {id:'ajustes', nom:'Ajustes y datos'}
+];
+function admRender(){
+  const nav=$('#adm-nav'); nav.innerHTML='';
+  SECS.forEach(s=>{
+    if(s.g){ const d=document.createElement('div'); d.className='grp'; d.textContent=s.g; nav.appendChild(d); return; }
+    const b=document.createElement('button');
+    b.textContent=s.nom;
+    if(s.id==='pedidos'){
+      const n=DB.orders.filter(o=>o.estado==='Nuevo').length;
+      if(n) b.innerHTML = `${s.nom} <span class="count" style="background:var(--acc);color:#fff;font-family:var(--f-mono);font-size:10px;padding:1px 6px;border-radius:9px;margin-left:auto">${n}</span>`;
+    }
+    if(s.id==='consultas'){
+      const n=DB.consultas.filter(c=>!c.leida).length;
+      if(n) b.innerHTML = `${s.nom} <span class="count" style="background:var(--acc);color:#fff;font-family:var(--f-mono);font-size:10px;padding:1px 6px;border-radius:9px;margin-left:auto">${n}</span>`;
+    }
+    b.setAttribute('aria-pressed', seccion===s.id);
+    b.onclick=()=>{ seccion=s.id; admRender(); };
+    nav.appendChild(b);
+  });
+  ({panel:secPanel, pedidos:secPedidos, consultas:secConsultas, productos:secProductos,
+    cats:secCats, opciones:secOpciones, contenido:secContenido, ajustes:secAjustes}[seccion] || secPanel)();
+}
+function head(t, s, extra=''){
+  return `<div class="adm-head"><div><h2>${t}</h2><p>${s}</p></div><div style="display:flex;gap:8px">${extra}</div></div>`;
+}
+const B=$('#adm-body');
+
+/* ---- Resumen ---- */
+function secPanel(){
+  const mes=new Date().toISOString().slice(0,7);
+  const delMes=DB.orders.filter(o=>o.fecha.startsWith(mes) && o.estado!=='Cancelado');
+  const fact=delMes.reduce((s,o)=>s+o.base,0);
+  const cuenta={};
+  DB.orders.forEach(o=>o.lineas.forEach(l=>cuenta[l.nom]=(cuenta[l.nom]||0)+1));
+  const top=Object.entries(cuenta).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  B.innerHTML = head('Resumen','Cómo va el negocio ahora mismo.') + `
+    <div class="kpis">
+      <div class="kpi"><div class="k">Pedidos nuevos</div><div class="v">${DB.orders.filter(o=>o.estado==='Nuevo').length}</div><div class="s">Sin presupuestar</div></div>
+      <div class="kpi"><div class="k">En producción</div><div class="v">${DB.orders.filter(o=>o.estado==='En producción').length}</div><div class="s">En máquina o taller</div></div>
+      <div class="kpi"><div class="k">Facturado este mes</div><div class="v">${eur(fact)}</div><div class="s">Base, sin IVA</div></div>
+      <div class="kpi"><div class="k">Catálogo activo</div><div class="v">${activos().length}<span style="font-size:16px;color:var(--muted)">/${DB.products.length}</span></div><div class="s">Productos visibles</div></div>
+    </div>
+    <div class="grid2">
+      <div class="panel"><h3>Últimos pedidos</h3>
+        <table class="adm"><tbody>${DB.orders.slice(0,6).map(o=>`
+          <tr><td class="mono" style="font-size:12.5px">${o.id}</td><td>${esc(o.cliente)}</td>
+          <td><span class="pill ${ESTPILL[o.estado]}">${o.estado}</span></td>
+          <td style="text-align:right;font-weight:600">${eur(o.base)}</td></tr>`).join('') || '<tr><td style="padding:22px;color:var(--muted)">Todavía no hay pedidos.</td></tr>'}</tbody></table>
+      </div>
+      <div class="panel"><h3>Lo que más se pide</h3>
+        <table class="adm"><tbody>${top.map(([n,c])=>`
+          <tr><td>${esc(n)}</td><td style="text-align:right" class="mono">${c} pedido${c>1?'s':''}</td></tr>`).join('') || '<tr><td style="padding:22px;color:var(--muted)">Sin datos aún.</td></tr>'}</tbody></table>
+      </div>
+    </div>`;
+}
+
+/* ---- Pedidos ---- */
+function secPedidos(){
+  const lista=DB.orders.filter(o=>
+    (admEst==='todo'||o.estado===admEst) &&
+    (!admBusca || (o.cliente+o.id+o.tel).toLowerCase().includes(admBusca)));
+  B.innerHTML = head('Pedidos','Cambia el estado y el cliente lo ve reflejado en su referencia.') + `
+    <div class="toolbar">
+      <input id="pb" placeholder="Buscar cliente, referencia o teléfono" value="${esc(admBusca)}" style="min-width:260px">
+      <select id="pe"><option value="todo">Todos los estados</option>${ESTADOS.map(e=>`<option ${admEst===e?'selected':''}>${e}</option>`).join('')}</select>
+      <span class="mono" style="font-size:12px;color:var(--muted);margin-left:auto">${lista.length} pedidos</span>
+    </div>
+    <div class="panel"><table class="adm">
+      <thead><tr><th>Referencia</th><th>Fecha</th><th>Cliente</th><th>Líneas</th><th>Estado</th><th style="text-align:right">Base</th><th></th></tr></thead>
+      <tbody>${lista.map(o=>`
+        <tr><td class="mono" style="font-size:12.5px;font-weight:600">${o.id}</td>
+        <td class="mono" style="font-size:12.5px;color:var(--muted)">${o.fecha.split('-').reverse().join('/')}</td>
+        <td><b>${esc(o.cliente)}</b><br><span style="font-size:12.5px;color:var(--muted)">${esc(o.tel)}</span></td>
+        <td style="font-size:13px">${o.lineas.map(l=>esc(l.nom)).join('<br>')}</td>
+        <td><span class="pill ${ESTPILL[o.estado]}">${o.estado}</span></td>
+        <td style="text-align:right;font-weight:600">${eur(o.base)}</td>
+        <td><div class="rowacts"><button class="ibtn" data-ver="${o.id}">Abrir</button></div></td></tr>`).join('')
+        || '<tr><td colspan="7" style="padding:30px;text-align:center;color:var(--muted)">No hay pedidos con ese filtro.</td></tr>'}
+      </tbody></table></div>`;
+  $('#pb').oninput=e=>{ admBusca=e.target.value.toLowerCase(); secPedidos(); };
+  $('#pe').onchange=e=>{ admEst=e.target.value; secPedidos(); };
+  B.querySelectorAll('[data-ver]').forEach(b=> b.onclick=()=>verPedido(b.dataset.ver));
+}
+function verPedido(id){
+  const o=DB.orders.find(x=>x.id===id); if(!o) return;
+  const iva=o.base*(DB.settings.iva/100);
+  dlg(`Pedido ${o.id}`, `
+    <div class="grid2" style="margin-bottom:16px">
+      <div><div class="k mono" style="font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)">Cliente</div><b>${esc(o.cliente)}</b><br><span style="font-size:13.5px">${esc(o.tel)}${o.email?' · '+esc(o.email):''}</span></div>
+      <div><div class="k mono" style="font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)">Entrega</div><b>${esc(o.entrega)}</b><br><span style="font-size:13.5px;color:var(--muted)">Pedido del ${o.fecha.split('-').reverse().join('/')}</span></div>
+    </div>
+    ${o.notas?`<div class="note" style="background:#F4F6F8;border-color:var(--line);color:var(--ink-70)"><b>Notas del cliente</b>${esc(o.notas)}</div>`:''}
+    <table class="adm" style="border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:14px">
+      <tbody>${o.lineas.map(l=>`<tr><td><b>${esc(l.nom)}</b><br><span class="mono" style="font-size:11.5px;color:var(--muted)">${esc(l.cant)} · ${esc(l.especs)}${l.archivo?'<br>Arte: '+esc(l.archivo):''}</span></td>
+      <td style="text-align:right;font-weight:600;white-space:nowrap">${eur(l.precio)}</td></tr>`).join('')}</tbody>
+    </table>
+    <div class="sumrow"><span>Base</span><span>${eur(o.base)}</span></div>
+    <div class="sumrow"><span>IVA ${DB.settings.iva} %</span><span>${eur(iva)}</span></div>
+    <div class="sumrow total"><span>Total</span><span>${eur(o.base+iva)}</span></div>
+    <div class="field" style="margin-top:18px"><label for="o-est">Estado del pedido</label>
+      <select id="o-est">${ESTADOS.map(e=>`<option ${o.estado===e?'selected':''}>${e}</option>`).join('')}</select></div>`,
+    `<button class="ibtn del" id="o-del">Eliminar pedido</button>
+     <div style="display:flex;gap:8px"><button class="btn ghost sm" id="o-copy">Copiar</button><button class="btn pink sm" id="o-save">Guardar estado</button></div>`);
+  $('#dlg-foot').style.justifyContent='space-between';
+  $('#o-save').onclick=()=>{ o.estado=$('#o-est').value; save(false); cerrarTodo(); admRender(); toast(`${o.id} · ${o.estado}`); };
+  $('#o-del').onclick=()=>{
+    if(!confirm(`¿Eliminar el pedido ${o.id}? No se puede deshacer.`)) return;
+    DB.orders=DB.orders.filter(x=>x.id!==o.id); save(false); cerrarTodo(); admRender(); toast('Pedido eliminado');
+  };
+  $('#o-copy').onclick=async()=>{
+    let t=`${o.id} · ${o.cliente} · ${o.tel}\n${o.entrega} · ${o.fecha}\n\n`;
+    o.lineas.forEach(l=>{ t+=`${l.nom}\n  ${l.cant} · ${l.especs}\n  ${eur(l.precio)}\n`; });
+    t+=`\nBase ${eur(o.base)} · IVA ${eur(iva)} · Total ${eur(o.base+iva)}`;
+    try{ await navigator.clipboard.writeText(t); toast('Pedido copiado'); }catch(e){}
+  };
+}
+
+/* ---- Consultas ---- */
+function secConsultas(){
+  B.innerHTML = head('Consultas','Lo que llega por el formulario de contacto.') + `
+    <div class="panel"><table class="adm">
+      <thead><tr><th>Fecha</th><th>Quién</th><th>Trabajo</th><th>Mensaje</th><th></th></tr></thead>
+      <tbody>${DB.consultas.map(c=>`
+        <tr style="${c.leida?'opacity:.6':''}">
+          <td class="mono" style="font-size:12.5px;color:var(--muted)">${c.fecha.split('-').reverse().join('/')}</td>
+          <td><b>${esc(c.nom)}</b><br><span style="font-size:12.5px;color:var(--muted)">${esc(c.contacto||'—')}</span></td>
+          <td style="font-size:13px">${esc(c.trabajo)}</td>
+          <td style="font-size:13px;max-width:340px">${esc(c.msg||'—')}</td>
+          <td><div class="rowacts">
+            <button class="ibtn" data-leer="${c.id}">${c.leida?'Marcar sin leer':'Marcar leída'}</button>
+            <button class="ibtn del" data-cdel="${c.id}">Borrar</button></div></td></tr>`).join('')
+        || '<tr><td colspan="5" style="padding:30px;text-align:center;color:var(--muted)">No hay consultas todavía. Prueba a enviar una desde la tienda.</td></tr>'}
+      </tbody></table></div>`;
+  B.querySelectorAll('[data-leer]').forEach(b=> b.onclick=()=>{
+    const c=DB.consultas.find(x=>x.id===b.dataset.leer); c.leida=!c.leida; save(false); admRender();
+  });
+  B.querySelectorAll('[data-cdel]').forEach(b=> b.onclick=()=>{
+    DB.consultas=DB.consultas.filter(x=>x.id!==b.dataset.cdel); save(false); admRender();
+  });
+}
+
+/* ---- Productos ---- */
+function secProductos(){
+  const lista=DB.products.filter(p=>
+    (admCat==='todo'||p.cat===admCat) &&
+    (!admBusca || (p.nom+p.tech+p.desc).toLowerCase().includes(admBusca)));
+  B.innerHTML = head('Productos','Precios por tramo de tirada. Lo que guardes aquí sale en la tienda al momento.',
+    `<button class="btn ghost sm" id="csv-exp">Exportar tarifa</button>
+     <button class="btn ghost sm" id="csv-imp">Importar tarifa</button>
+     <input type="file" id="csv-file" accept=".csv,text/csv" style="display:none">
+     <button class="btn ghost sm" id="precios">Ajustar precios</button>
+     <button class="btn pink sm" id="nuevo">Nuevo producto</button>`) + `
+    <div class="toolbar">
+      <input id="qb" placeholder="Buscar producto" value="${esc(admBusca)}" style="min-width:240px">
+      <select id="cb"><option value="todo">Todas las categorías</option>${DB.cats.map(c=>`<option value="${c.id}" ${admCat===c.id?'selected':''}>${esc(c.nom)}</option>`).join('')}</select>
+      <span class="mono" style="font-size:12px;color:var(--muted);margin-left:auto">${lista.length} de ${DB.products.length}</span>
+    </div>
+    <div class="panel"><table class="adm">
+      <thead><tr><th></th><th>Producto</th><th>Categoría</th><th>Tramos</th><th>Desde</th><th>Estado</th><th></th></tr></thead>
+      <tbody>${lista.map(p=>`
+        <tr><td><div class="tmini">${foto(p)}</div></td>
+        <td><b>${esc(p.nom)}</b>${p.img?' <span class="mono" style="font-size:10px;color:var(--ok)">FOTO</span>':''}<br><span class="mono" style="font-size:11px;color:var(--muted)">${esc(p.tech)}</span></td>
+        <td style="font-size:13.5px">${esc(catNom(p.cat))}</td>
+        <td class="mono" style="font-size:12px;color:var(--muted)">${p.tiers.map(t=>tierLabel(t)).join(' · ')}</td>
+        <td style="font-weight:600;white-space:nowrap">${eur(Math.min(...p.tiers.map(t=>+t[1])))}</td>
+        <td><span class="pill ${p.on===false?'off':'on'}">${p.on===false?'Oculto':'Visible'}</span></td>
+        <td><div class="rowacts">
+          <button class="ibtn" data-ed="${p.id}">Editar</button>
+          <button class="ibtn" data-tog="${p.id}">${p.on===false?'Mostrar':'Ocultar'}</button>
+          <button class="ibtn" data-dup="${p.id}">Duplicar</button>
+          <button class="ibtn del" data-del="${p.id}">Borrar</button></div></td></tr>`).join('')
+        || '<tr><td colspan="7" style="padding:30px;text-align:center;color:var(--muted)">Ningún producto con ese filtro.</td></tr>'}
+      </tbody></table></div>`;
+  $('#qb').oninput=e=>{ admBusca=e.target.value.toLowerCase(); secProductos(); };
+  $('#cb').onchange=e=>{ admCat=e.target.value; secProductos(); };
+  $('#nuevo').onclick=()=>editarProducto(null);
+  $('#csv-exp').onclick=exportarTarifa;
+  $('#csv-imp').onclick=()=>$('#csv-file').click();
+  $('#csv-file').onchange=e=>{ const f=e.target.files[0]; if(f) importarTarifa(f); e.target.value=''; };
+  $('#precios').onclick=dialogoPrecios;
+  B.querySelectorAll('[data-ed]').forEach(b=> b.onclick=()=>editarProducto(b.dataset.ed));
+  B.querySelectorAll('[data-tog]').forEach(b=> b.onclick=()=>{
+    const p=DB.products.find(x=>x.id===b.dataset.tog); p.on = p.on===false; save(false); admRender();
+  });
+  B.querySelectorAll('[data-dup]').forEach(b=> b.onclick=()=>{
+    const p=clone(DB.products.find(x=>x.id===b.dataset.dup));
+    p.id=uid(); p.nom=p.nom+' (copia)';
+    DB.products.push(p); save(false); admRender(); toast('Producto duplicado');
+  });
+  B.querySelectorAll('[data-del]').forEach(b=> b.onclick=()=>{
+    const p=DB.products.find(x=>x.id===b.dataset.del);
+    if(!confirm(`¿Borrar "${p.nom}"?`)) return;
+    DB.products=DB.products.filter(x=>x.id!==p.id); save(false); admRender(); toast('Producto borrado');
+  });
+}
+function editarProducto(id){
+  const nuevo = !id;
+  const p = nuevo
+    ? {id:uid(), cat:DB.cats[0].id, nom:'', art:'flyer', tech:'', desc:'', tiers:[[100,0,'']], badge:'', on:true}
+    : clone(DB.products.find(x=>x.id===id));
+  dlg(nuevo?'Nuevo producto':'Editar producto', `
+    <div class="field"><label>Nombre</label><input id="e-nom" value="${esc(p.nom)}" placeholder="Tarjetas de visita"></div>
+    <div class="grid2">
+      <div class="field"><label>Categoría</label><select id="e-cat">${DB.cats.map(c=>`<option value="${c.id}" ${p.cat===c.id?'selected':''}>${esc(c.nom)}</option>`).join('')}</select></div>
+      <div class="field"><label>Ilustración</label><select id="e-art">${ART_KEYS.map(k=>`<option ${p.art===k?'selected':''}>${k}</option>`).join('')}</select></div>
+    </div>
+    <div id="e-prev" style="border:1px solid var(--line);border-radius:8px;padding:10px;width:90px;margin-bottom:14px">${ART[p.art]}</div>
+    <div class="field"><label>Foto del producto</label>
+      <div class="fotobox" id="e-fotobox"></div>
+      <input type="file" id="e-fotofile" accept="image/*" style="display:none">
+      <input id="e-fotourl" value="${esc(p.img && !String(p.img).startsWith('data:') ? p.img : '')}" placeholder="…o pega una ruta: fotos/tarjetas.jpg" style="margin-top:8px;font-family:var(--f-mono);font-size:12.5px">
+      <div class="hint">Si no pones foto se usa la ilustración de arriba. Lo más ligero es subir los JPG al repositorio y escribir aquí <span class="mono">fotos/nombre.jpg</span>.</div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>Etiqueta técnica</label><input id="e-tech" value="${esc(p.tech)}" placeholder="Offset · 350 g"></div>
+      <div class="field"><label>Distintivo</label><input id="e-badge" value="${esc(p.badge)}" placeholder="Más pedido (opcional)"></div>
+    </div>
+    <div class="field"><label>Descripción</label><textarea id="e-desc" style="min-height:70px">${esc(p.desc)}</textarea></div>
+    <div class="field"><label>Tramos de tirada</label>
+      <div class="tierrow mono" style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em">
+        <span>Cantidad</span><span>Precio sin IVA</span><span>Etiqueta (opcional)</span><span></span></div>
+      <div id="e-tiers"></div>
+      <button class="ibtn" id="e-addtier" style="margin-top:6px">+ Añadir tramo</button>
+      <div class="hint">La etiqueta sustituye a "100 ud." cuando el tramo no se mide en unidades (por ejemplo "3 m²" o "Integral").</div>
+    </div>
+    <label style="display:flex;gap:9px;align-items:center;font-size:14px;font-weight:600;margin-top:6px">
+      <input type="checkbox" id="e-on" ${p.on!==false?'checked':''} style="width:17px;height:17px"> Visible en la tienda</label>`,
+    `<span class="mono" style="font-size:11.5px;color:var(--muted)">REF ${p.id.toUpperCase()}</span>
+     <button class="btn pink" id="e-save">Guardar producto</button>`);
+  $('#dlg-foot').style.justifyContent='space-between';
+
+  const cont=$('#e-tiers');
+  const pintarTiers=()=>{
+    cont.innerHTML='';
+    p.tiers.forEach((t,i)=>{
+      const d=document.createElement('div'); d.className='tierrow';
+      d.innerHTML=`<input type="number" min="1" value="${t[0]}" data-i="${i}" data-f="0">
+        <input type="number" min="0" step="0.01" value="${t[1]}" data-i="${i}" data-f="1">
+        <input value="${esc(t[2]||'')}" placeholder="—" data-i="${i}" data-f="2">
+        <button class="xbtn" data-x="${i}">✕</button>`;
+      cont.appendChild(d);
+    });
+    cont.querySelectorAll('input').forEach(inp=> inp.oninput=e=>{
+      const i=+e.target.dataset.i, f=+e.target.dataset.f;
+      p.tiers[i][f] = f===2 ? e.target.value : (+e.target.value||0);
+    });
+    cont.querySelectorAll('[data-x]').forEach(b=> b.onclick=()=>{
+      if(p.tiers.length<2){ toast('Deja al menos un tramo'); return; }
+      p.tiers.splice(+b.dataset.x,1); pintarTiers();
+    });
+  };
+  pintarTiers();
+  $('#e-addtier').onclick=()=>{ const u=p.tiers[p.tiers.length-1]; p.tiers.push([(+u[0])*2, Math.round((+u[1])*1.8), '']); pintarTiers(); };
+  $('#e-art').onchange=e=>{ $('#e-prev').innerHTML = ART[e.target.value]; };
+
+  // --- foto: subir del disco (se reescala) o apuntar a una ruta ---
+  const pintarFoto=()=>{
+    const b=$('#e-fotobox');
+    b.innerHTML = p.img
+      ? `<img src="${esc(p.img)}" alt=""><div><button type="button" class="ibtn" id="e-fotocambia">Cambiar</button>
+         <button type="button" class="ibtn del" id="e-fotoquita">Quitar foto</button></div>
+         <div class="mono" style="font-size:10.5px;margin-top:8px">${String(p.img).startsWith('data:')?`subida · ${Math.round(p.img.length/1024)} KB`:esc(p.img)}</div>`
+      : `<b style="display:block;color:var(--ink);margin-bottom:4px">Sin foto</b>Se ve la ilustración vectorial.
+         <div style="margin-top:10px"><button type="button" class="ibtn" id="e-fotocambia">Subir una foto</button></div>`;
+    const c=$('#e-fotocambia'); if(c) c.onclick=()=>$('#e-fotofile').click();
+    const q=$('#e-fotoquita'); if(q) q.onclick=()=>{ p.img=''; $('#e-fotourl').value=''; pintarFoto(); };
+  };
+  pintarFoto();
+  $('#e-fotofile').onchange=e=>{
+    const f=e.target.files[0]; if(!f) return;
+    reducirFoto(f, 760, 0.72, d=>{ p.img=d; $('#e-fotourl').value=''; pintarFoto(); });
+  };
+  $('#e-fotourl').oninput=e=>{
+    const v=e.target.value.trim();
+    if(v || String(p.img).startsWith('data:') === false){ p.img=v; pintarFoto(); }
+  };
+  $('#e-save').onclick=()=>{
+    p.nom=$('#e-nom').value.trim(); p.cat=$('#e-cat').value; p.art=$('#e-art').value;
+    p.tech=$('#e-tech').value.trim(); p.badge=$('#e-badge').value.trim();
+    p.desc=$('#e-desc').value.trim(); p.on=$('#e-on').checked;
+    const u=$('#e-fotourl').value.trim();
+    if(u) p.img=u;
+    if(!p.nom){ toast('Ponle un nombre al producto'); return; }
+    if(!p.tiers.length || p.tiers.some(t=>!t[0])){ toast('Revisa los tramos de tirada'); return; }
+    p.tiers.sort((a,b)=>a[0]-b[0]);
+    const i=DB.products.findIndex(x=>x.id===p.id);
+    if(i>=0) DB.products[i]=p; else DB.products.push(p);
+    save(false); cerrarTodo(); admRender(); toast('Producto guardado');
+  };
+}
+
+
+/* Reduce la foto antes de guardarla: una foto de móvil son 4 MB y aquí
+   con 760 px de lado largo sobra para una ficha de producto. */
+function reducirFoto(archivo, max, calidad, cb){
+  const r=new FileReader();
+  r.onload=()=>{
+    const im=new Image();
+    im.onload=()=>{
+      const k=Math.min(1, max/Math.max(im.width, im.height));
+      const c=document.createElement('canvas');
+      c.width=Math.round(im.width*k); c.height=Math.round(im.height*k);
+      c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+      const d=c.toDataURL('image/jpeg', calidad);
+      if(d.length > 700*1024){ toast('La foto sigue pesando mucho; prueba con una más pequeña'); return; }
+      cb(d);
+    };
+    im.onerror=()=>toast('No se ha podido leer esa imagen');
+    im.src=r.result;
+  };
+  r.readAsDataURL(archivo);
+}
+
+/* ---- Tarifa en CSV --------------------------------------------------------
+   Un producto por fila. Los tramos van en una sola columna:
+   "100:22 | 250:29 | 500:39"  o con etiqueta:  "1:450:Parcial | 2:780:Media"
+   Separador punto y coma, que es lo que espera el Excel en español.       */
+const CSV_CAB = ['id','categoria','nombre','ilustracion','foto','tecnica','descripcion','distintivo','visible','tramos'];
+
+function csvCampo(v){
+  v = String(v ?? '');
+  return /[;"\n\r]/.test(v) ? '"' + v.replace(/"/g,'""') + '"' : v;
+}
+function tramosATexto(tiers){
+  return tiers.map(t => t[2] ? `${t[0]}:${t[1]}:${t[2]}` : `${t[0]}:${t[1]}`).join(' | ');
+}
+function textoATramos(txt){
+  const out = [];
+  String(txt).split('|').forEach(bloque=>{
+    const p = bloque.trim().split(':');
+    if(p.length < 2) return;
+    const q = parseFloat(String(p[0]).replace(',','.'));
+    const pr = parseFloat(String(p[1]).replace(',','.'));
+    if(!(q > 0) || !(pr >= 0)) return;
+    out.push([q, Math.round(pr*100)/100, (p[2] || '').trim()]);
+  });
+  return out.sort((a,b)=>a[0]-b[0]);
+}
+function exportarTarifa(){
+  const filas = [CSV_CAB.join(';')];
+  DB.products.forEach(p=>{
+    // las fotos subidas no caben en un CSV; se exporta solo la ruta
+    const img = String(p.img||'').startsWith('data:') ? '(subida)' : (p.img||'');
+    filas.push([p.id, p.cat, p.nom, p.art, img, p.tech, p.desc, p.badge||'',
+                p.on===false?'no':'si', tramosATexto(p.tiers)].map(csvCampo).join(';'));
+  });
+  // el BOM hace que Excel abra bien los acentos
+  const blob = new Blob(['\ufeff' + filas.join('\r\n')], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `tarifa-${DB.settings.marca.toLowerCase().replace(/\s+/g,'-')}-${hoy()}.csv`;
+  a.click(); URL.revokeObjectURL(a.href);
+  toast(`Tarifa exportada · ${DB.products.length} productos`);
+}
+function leerCSV(txt){
+  txt = txt.replace(/^\ufeff/, '');
+  const filas = [];
+  let campo = '', fila = [], comillas = false;
+  for(let i=0; i<txt.length; i++){
+    const c = txt[i];
+    if(comillas){
+      if(c === '"' && txt[i+1] === '"'){ campo += '"'; i++; }
+      else if(c === '"'){ comillas = false; }
+      else campo += c;
+    } else if(c === '"'){ comillas = true; }
+    else if(c === ';'){ fila.push(campo); campo = ''; }
+    else if(c === '\n'){ fila.push(campo); filas.push(fila); fila = []; campo = ''; }
+    else if(c !== '\r'){ campo += c; }
+  }
+  if(campo !== '' || fila.length){ fila.push(campo); filas.push(fila); }
+  return filas.filter(f => f.some(v => v.trim() !== ''));
+}
+function importarTarifa(archivo){
+  const r = new FileReader();
+  r.onload = ()=>{
+    const filas = leerCSV(r.result);
+    if(filas.length < 2){ toast('El archivo está vacío o no usa punto y coma'); return; }
+    const cab = filas[0].map(c => c.trim().toLowerCase());
+    const col = n => cab.indexOf(n);
+    if(col('nombre') < 0 || col('tramos') < 0){
+      toast('Faltan las columnas "nombre" y "tramos"'); return;
+    }
+    const nuevos = [], cambios = [], fallos = [];
+    filas.slice(1).forEach((f, n)=>{
+      const dato = k => (col(k) >= 0 ? (f[col(k)] || '').trim() : '');
+      const nom = dato('nombre');
+      if(!nom) return;
+      const tiers = textoATramos(dato('tramos'));
+      if(!tiers.length){ fallos.push(`Fila ${n+2} · ${nom}: tramos ilegibles`); return; }
+      const cat = dato('categoria') || DB.cats[0].id;
+      if(!DB.cats.some(c => c.id === cat)){ fallos.push(`Fila ${n+2} · ${nom}: la categoría "${cat}" no existe`); return; }
+      const art = ART[dato('ilustracion')] ? dato('ilustracion') : 'flyer';
+      const id = dato('id');
+      const viejo = id ? DB.products.find(p => p.id === id) : DB.products.find(p => p.nom === nom);
+      const reg = {
+        id: viejo ? viejo.id : uid(), cat, nom, art,
+        tech: dato('tecnica') || (viejo ? viejo.tech : ''),
+        desc: dato('descripcion') || (viejo ? viejo.desc : ''),
+        badge: dato('distintivo'), tiers,
+        img: (()=>{ const v=dato('foto');
+              return (!v || v==='(subida)') ? (viejo ? viejo.img||'' : '') : v; })(),
+        on: /^(no|0|false|oculto)$/i.test(dato('visible')) ? false : true
+      };
+      (viejo ? cambios : nuevos).push({reg, viejo});
+    });
+    if(!nuevos.length && !cambios.length){
+      dlg('No se ha podido importar', `<p style="font-size:14px">Ninguna fila era válida.</p>
+        <div class="note" style="margin-top:14px"><b>Revisa</b>${fallos.slice(0,6).map(esc).join('<br>') || 'El separador debe ser punto y coma.'}</div>`,
+        '<button class="btn block" data-close>Cerrar</button>');
+      enlazarCierres(); return;
+    }
+    const muestra = cambios.filter(c => tramosATexto(c.viejo.tiers) !== tramosATexto(c.reg.tiers)).slice(0,6);
+    dlg('Confirma la importación', `
+      <div class="kpis" style="grid-template-columns:1fr 1fr;margin-bottom:16px">
+        <div class="kpi"><div class="k">Se actualizan</div><div class="v">${cambios.length}</div><div class="s">productos ya existentes</div></div>
+        <div class="kpi"><div class="k">Se crean</div><div class="v">${nuevos.length}</div><div class="s">productos nuevos</div></div>
+      </div>
+      ${muestra.length ? `<div class="panel" style="margin-bottom:0"><h3>Cambios de precio</h3><table class="adm"><tbody>${
+        muestra.map(c=>`<tr><td>${esc(c.reg.nom)}</td>
+          <td class="mono" style="font-size:11.5px;color:var(--muted);text-align:right">${esc(tramosATexto(c.viejo.tiers))}<br>→ ${esc(tramosATexto(c.reg.tiers))}</td></tr>`).join('')
+      }</tbody></table></div>` : ''}
+      ${fallos.length ? `<div class="note" style="margin-top:14px"><b>${fallos.length} fila${fallos.length>1?'s':''} sin importar</b>${fallos.slice(0,5).map(esc).join('<br>')}</div>` : ''}`,
+      `<button class="btn ghost sm" data-close>Cancelar</button><button class="btn pink" id="imp-ok">Aplicar cambios</button>`);
+    $('#dlg-foot').style.justifyContent='space-between';
+    enlazarCierres();
+    $('#imp-ok').onclick=()=>{
+      [...cambios, ...nuevos].forEach(({reg, viejo})=>{
+        if(viejo) Object.assign(viejo, reg);
+        else DB.products.push(reg);
+      });
+      save(false); cerrarTodo(); admRender();
+      toast(`Tarifa importada · ${cambios.length} actualizados, ${nuevos.length} nuevos`);
+    };
+  };
+  r.readAsText(archivo, 'utf-8');
+}
+
+/* ---- Subir o bajar precios en bloque ---- */
+function dialogoPrecios(){
+  dlg('Ajustar precios', `
+    <p style="font-size:14px;color:var(--muted);margin-bottom:16px">Aplica un porcentaje a todos los tramos de los productos que elijas. Útil cuando sube el papel o el textil y hay que repasar la tarifa entera.</p>
+    <div class="grid2">
+      <div class="field"><label>Aplicar a</label><select id="ap-cat">
+        <option value="todo">Todo el catálogo (${DB.products.length})</option>
+        ${DB.cats.map(c=>`<option value="${c.id}">${esc(c.nom)} (${DB.products.filter(p=>p.cat===c.id).length})</option>`).join('')}
+      </select></div>
+      <div class="field"><label>Porcentaje</label><input type="number" id="ap-pct" value="5" step="0.5">
+        <div class="hint">En negativo para bajar precios.</div></div>
+    </div>
+    <div class="field"><label>Redondeo</label><select id="ap-red">
+      <option value="0.01">Al céntimo</option>
+      <option value="1" selected>Al euro</option>
+      <option value="5">A múltiplos de 5 €</option>
+    </select></div>
+    <div class="note" id="ap-prev" style="margin-bottom:0"></div>`,
+    `<button class="btn ghost sm" data-close>Cancelar</button><button class="btn pink" id="ap-ok">Aplicar</button>`);
+  $('#dlg-foot').style.justifyContent='space-between';
+  enlazarCierres();
+
+  const afectados = ()=> $('#ap-cat').value === 'todo'
+      ? DB.products : DB.products.filter(p => p.cat === $('#ap-cat').value);
+  const nuevoPrecio = v =>{
+    const r = +$('#ap-red').value;
+    const n = v * (1 + (+$('#ap-pct').value || 0)/100);
+    return Math.max(0, Math.round(n / r) * r);
+  };
+  const preview = ()=>{
+    const l = afectados();
+    const p = l[0];
+    $('#ap-prev').innerHTML = !p ? 'No hay productos en esa selección.'
+      : `<b>Vista previa</b>${esc(p.nom)}: ${eur(p.tiers[0][1])} → ${eur(nuevoPrecio(p.tiers[0][1]))} · afecta a ${l.length} producto${l.length>1?'s':''}`;
+  };
+  ['#ap-cat','#ap-pct','#ap-red'].forEach(s => $(s).oninput = preview);
+  $('#ap-cat').onchange = preview;
+  preview();
+
+  $('#ap-ok').onclick=()=>{
+    const l = afectados();
+    if(!l.length){ toast('No hay productos que ajustar'); return; }
+    if(!confirm(`Se van a cambiar los precios de ${l.length} productos. ¿Seguir?`)) return;
+    l.forEach(p => p.tiers = p.tiers.map(t => [t[0], nuevoPrecio(t[1]), t[2] || '']));
+    save(false); cerrarTodo(); admRender();
+    toast(`Precios ajustados en ${l.length} productos`);
+  };
+}
+
+/* ---- Categorías ---- */
+function secCats(){
+  B.innerHTML = head('Categorías','El orden de esta lista es el orden del menú de la tienda.',
+    '<button class="btn pink sm" id="cnuevo">Nueva categoría</button>') + `
+    <div class="panel"><table class="adm">
+      <thead><tr><th></th><th>Nombre</th><th>Subtítulo</th><th>Productos</th><th>Orden</th><th></th></tr></thead>
+      <tbody>${DB.cats.map((c,i)=>`
+        <tr><td><div class="tmini">${ART[c.ico]||ART.flyer}</div></td>
+        <td><b>${esc(c.nom)}</b><br><span class="mono" style="font-size:11px;color:var(--muted)">${esc(c.id)}</span></td>
+        <td style="font-size:13.5px;color:var(--muted)">${esc(c.sub)}</td>
+        <td class="mono">${DB.products.filter(p=>p.cat===c.id).length}</td>
+        <td><div class="rowacts" style="justify-content:flex-start">
+          <button class="ibtn" data-up="${i}" ${i===0?'disabled':''}>↑</button>
+          <button class="ibtn" data-dn="${i}" ${i===DB.cats.length-1?'disabled':''}>↓</button></div></td>
+        <td><div class="rowacts">
+          <button class="ibtn" data-ced="${c.id}">Editar</button>
+          <button class="ibtn del" data-cdl="${c.id}">Borrar</button></div></td></tr>`).join('')}
+      </tbody></table></div>`;
+  $('#cnuevo').onclick=()=>editarCat(null);
+  B.querySelectorAll('[data-up]').forEach(b=> b.onclick=()=>{ const i=+b.dataset.up; [DB.cats[i-1],DB.cats[i]]=[DB.cats[i],DB.cats[i-1]]; save(false); admRender(); });
+  B.querySelectorAll('[data-dn]').forEach(b=> b.onclick=()=>{ const i=+b.dataset.dn; [DB.cats[i+1],DB.cats[i]]=[DB.cats[i],DB.cats[i+1]]; save(false); admRender(); });
+  B.querySelectorAll('[data-ced]').forEach(b=> b.onclick=()=>editarCat(b.dataset.ced));
+  B.querySelectorAll('[data-cdl]').forEach(b=> b.onclick=()=>{
+    const c=DB.cats.find(x=>x.id===b.dataset.cdl);
+    const n=DB.products.filter(p=>p.cat===c.id).length;
+    if(n){ toast(`Mueve antes los ${n} productos de esta categoría`); return; }
+    if(!confirm(`¿Borrar la categoría "${c.nom}"?`)) return;
+    DB.cats=DB.cats.filter(x=>x.id!==c.id); delete DB.opts[c.id]; save(false); admRender();
+  });
+}
+function editarCat(id){
+  const nuevo=!id;
+  const c = nuevo ? {id:'', nom:'', sub:'', ico:'flyer'} : clone(DB.cats.find(x=>x.id===id));
+  dlg(nuevo?'Nueva categoría':'Editar categoría', `
+    <div class="field"><label>Nombre</label><input id="k-nom" value="${esc(c.nom)}" placeholder="Papelería"></div>
+    <div class="field"><label>Subtítulo</label><input id="k-sub" value="${esc(c.sub)}" placeholder="Offset · digital"></div>
+    <div class="field"><label>Ilustración</label><select id="k-ico">${ART_KEYS.map(k=>`<option ${c.ico===k?'selected':''}>${k}</option>`).join('')}</select></div>
+    <div id="k-prev" style="border:1px solid var(--line);border-radius:8px;padding:10px;width:90px">${ART[c.ico]}</div>`,
+    `<button class="btn pink block" id="k-save">Guardar categoría</button>`);
+  $('#k-ico').onchange=e=>{ $('#k-prev').innerHTML=ART[e.target.value]; };
+  $('#k-save').onclick=()=>{
+    c.nom=$('#k-nom').value.trim(); c.sub=$('#k-sub').value.trim(); c.ico=$('#k-ico').value;
+    if(!c.nom){ toast('Ponle nombre'); return; }
+    if(nuevo){
+      c.id = c.nom.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'').slice(0,14) || uid();
+      if(DB.cats.some(x=>x.id===c.id)) c.id += uid().slice(0,3);
+      DB.cats.push(c);
+      DB.opts[c.id] = [clone(PLAZO), clone(DISENO)];
+    } else {
+      const i=DB.cats.findIndex(x=>x.id===c.id); DB.cats[i]=c;
+    }
+    save(false); cerrarTodo(); admRender(); toast('Categoría guardada');
+  };
+}
+
+/* ---- Opciones y recargos ---- */
+let optCat = null;
+function secOpciones(){
+  if(!optCat || !DB.cats.some(c=>c.id===optCat)) optCat = DB.cats[0].id;
+  const grupos = DB.opts[optCat] || (DB.opts[optCat]=[]);
+  B.innerHTML = head('Opciones y recargos','Cada categoría tiene sus propias opciones. El multiplicador escala el precio del tramo; el suplemento suma euros fijos.',
+    '<button class="btn pink sm" id="o-add">Añadir opción</button>') + `
+    <div class="note"><b>Cómo se calcula</b>Precio del tramo × todos los multiplicadores + todos los suplementos. Un multiplicador de 1 no encarece; 1,18 es un 18 % más.</div>
+    <div class="toolbar"><select id="o-cat">${DB.cats.map(c=>`<option value="${c.id}" ${optCat===c.id?'selected':''}>${esc(c.nom)}</option>`).join('')}</select>
+      <span class="mono" style="font-size:12px;color:var(--muted)">${DB.products.filter(p=>p.cat===optCat).length} productos usan estas opciones</span></div>
+    <div id="o-list"></div>`;
+  $('#o-cat').onchange=e=>{ optCat=e.target.value; secOpciones(); };
+  $('#o-add').onclick=()=>{ grupos.push({id:uid(), label:'Nueva opción', help:'', ch:[{n:'Estándar',mult:1,add:0}]}); save(false); secOpciones(); };
+  const L=$('#o-list');
+  grupos.forEach((g,gi)=>{
+    const d=document.createElement('div'); d.className='optcard';
+    d.innerHTML=`<div class="oh"><input value="${esc(g.label)}" data-g="${gi}" data-k="label">
+      <input value="${esc(g.help||'')}" placeholder="Aclaración (opcional)" data-g="${gi}" data-k="help" style="flex:.8;font-weight:400">
+      <button class="ibtn del" data-gdel="${gi}">Quitar opción</button></div>
+      <div class="chrow mono" style="font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em">
+        <span>Elección</span><span>Multiplicador</span><span>Suplemento €</span><span></span></div>
+      <div data-ch="${gi}"></div>
+      <button class="ibtn" data-chadd="${gi}" style="margin-top:4px">+ Añadir elección</button>`;
+    L.appendChild(d);
+    const cw=d.querySelector(`[data-ch="${gi}"]`);
+    g.ch.forEach((c,ci)=>{
+      const r=document.createElement('div'); r.className='chrow';
+      r.innerHTML=`<input value="${esc(c.n)}" data-g="${gi}" data-c="${ci}" data-k="n">
+        <input type="number" step="0.01" min="0" value="${c.mult??1}" data-g="${gi}" data-c="${ci}" data-k="mult">
+        <input type="number" step="1" min="0" value="${c.add??0}" data-g="${gi}" data-c="${ci}" data-k="add">
+        <button class="xbtn" data-cdel="${gi}-${ci}">✕</button>`;
+      cw.appendChild(r);
+    });
+  });
+  L.querySelectorAll('input').forEach(inp=> inp.onchange=e=>{
+    const t=e.target, gi=+t.dataset.g, k=t.dataset.k;
+    if(t.dataset.c!==undefined){
+      const ci=+t.dataset.c;
+      grupos[gi].ch[ci][k] = (k==='n') ? t.value : (+t.value||0);
+    } else grupos[gi][k]=t.value;
+    save(false);
+  });
+  L.querySelectorAll('[data-gdel]').forEach(b=> b.onclick=()=>{ grupos.splice(+b.dataset.gdel,1); save(false); secOpciones(); });
+  L.querySelectorAll('[data-chadd]').forEach(b=> b.onclick=()=>{ grupos[+b.dataset.chadd].ch.push({n:'Nueva elección',mult:1,add:0}); save(false); secOpciones(); });
+  L.querySelectorAll('[data-cdel]').forEach(b=> b.onclick=()=>{
+    const [gi,ci]=b.dataset.cdel.split('-').map(Number);
+    if(grupos[gi].ch.length<2){ toast('Deja al menos una elección'); return; }
+    grupos[gi].ch.splice(ci,1); save(false); secOpciones();
+  });
+}
+
+/* ---- Textos de la web ---- */
+function secContenido(){
+  const s=DB.settings;
+  const bloque=(titulo, arr, campo)=>`
+    <div class="panel"><h3>${titulo}</h3><div class="pad">${arr.map((x,i)=>`
+      <div class="grid2" style="margin-bottom:10px">
+        <input data-arr="${campo}" data-i="${i}" data-k="t" value="${esc(x.t)}" style="border:1.5px solid var(--line);border-radius:8px;padding:9px 11px;font-weight:600">
+        <input data-arr="${campo}" data-i="${i}" data-k="s" value="${esc(x.s)}" style="border:1.5px solid var(--line);border-radius:8px;padding:9px 11px">
+      </div>`).join('')}</div></div>`;
+  B.innerHTML = head('Textos de la web','Todo lo que se lee en la portada. Se guarda al salir de cada campo.') + `
+    <div class="panel"><h3>Portada</h3><div class="pad">
+      <div class="grid2">
+        <div class="field"><label>Antetítulo</label><input data-s="kicker" value="${esc(s.kicker)}"></div>
+        <div class="field"><label>Aviso de la barra superior</label><input data-s="claim" value="${esc(s.claim)}"></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label>Titular, primera línea</label><input data-s="h1a" value="${esc(s.h1a)}"></div>
+        <div class="field"><label>Titular, segunda línea</label><input data-s="h1b" value="${esc(s.h1b)}"></div>
+      </div>
+      <div class="field"><label>Entradilla</label><textarea data-s="lead">${esc(s.lead)}</textarea></div>
+      <div class="field"><label>Descripción del pie</label><textarea data-s="desc" style="min-height:70px">${esc(s.desc)}</textarea></div>
+    </div></div>
+    ${bloque('Cuatro ventajas', DB.perks, 'perks')}
+    ${bloque('Pasos del pedido', DB.pasos, 'pasos')}
+    ${bloque('Técnicas del taller', DB.tecnicas, 'tecnicas')}
+    ${bloque('Requisitos del arte final', DB.specs, 'specs')}
+    <div class="panel"><h3>Para tu sector</h3><div class="pad">${DB.sectores.map((x,i)=>`
+      <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px dashed var(--line)">
+        <input data-arr="sectores" data-i="${i}" data-k="t" value="${esc(x.t)}" style="border:1.5px solid var(--line);border-radius:8px;padding:9px 11px;font-weight:600;width:100%;margin-bottom:8px">
+        <textarea data-arr="sectores" data-i="${i}" data-k="s" style="width:100%;border:1.5px solid var(--line);border-radius:8px;padding:9px 11px;min-height:56px">${esc(x.s)}</textarea>
+        <input data-arr="sectores" data-i="${i}" data-k="l" value="${esc(x.l||'')}" placeholder="Productos separados por ·" style="border:1.5px solid var(--line);border-radius:8px;padding:9px 11px;width:100%;margin-top:8px;font-family:var(--f-mono);font-size:12.5px">
+      </div>`).join('')}</div></div>
+    <div class="panel"><h3>Preguntas frecuentes</h3><div class="pad">${DB.faq.map((x,i)=>`
+      <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px dashed var(--line)">
+        <input data-arr="faq" data-i="${i}" data-k="t" value="${esc(x.t)}" style="border:1.5px solid var(--line);border-radius:8px;padding:9px 11px;font-weight:600;width:100%;margin-bottom:8px">
+        <textarea data-arr="faq" data-i="${i}" data-k="s" style="width:100%;border:1.5px solid var(--line);border-radius:8px;padding:9px 11px;min-height:70px">${esc(x.s)}</textarea>
+      </div>`).join('')}</div></div>`;
+  enlazarCampos();
+}
+
+/* ---- Ajustes ---- */
+function secAjustes(){
+  const s=DB.settings;
+  B.innerHTML = head('Ajustes y datos','Datos del negocio, apariencia y copia de seguridad.') + `
+    <div class="panel"><h3>Datos del negocio</h3><div class="pad">
+      <div class="grid2">
+        <div class="field"><label>Marca</label><input data-s="marca" value="${esc(s.marca)}"></div>
+        <div class="field"><label>Bajada de la marca</label><input data-s="sub" value="${esc(s.sub)}"></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label>Teléfono</label><input data-s="tel" value="${esc(s.tel)}"></div>
+        <div class="field"><label>Correo</label><input data-s="email" value="${esc(s.email)}"></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label>Dirección</label><input data-s="dir" value="${esc(s.dir)}"></div>
+        <div class="field"><label>Población</label><input data-s="ciudad" value="${esc(s.ciudad)}"></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label>Horario</label><input data-s="horario" value="${esc(s.horario)}"></div>
+        <div class="field"><label>Razón social</label><input data-s="razon" value="${esc(s.razon)}"></div>
+      </div>
+    </div></div>
+
+    <div class="panel"><h3>Tienda</h3><div class="pad"><div class="grid3">
+      <div class="field"><label>IVA aplicado (%)</label><input type="number" data-s="iva" value="${s.iva}"></div>
+      <div class="field"><label>Zona de reparto incluido</label><input data-s="reparto" value="${esc(s.reparto)}"></div>
+      <div class="field"><label>Color de acento</label><input type="color" data-s="acento" value="${s.acento}" style="height:44px;padding:4px"></div>
+    </div>
+    <div class="field" style="max-width:220px"><label>PIN del panel</label><input data-s="pin" value="${esc(s.pin)}">
+      <div class="hint">Esto no es seguridad real: cualquiera con el archivo puede verlo. Sirve para que nadie toque el panel por error.</div></div>
+    </div></div>
+
+    <div class="panel"><h3>Sincronizar entre dispositivos (Firebase)</h3><div class="pad">
+      <div class="note"><b>Opcional</b>Sin esto, los datos viven solo en este navegador. Pegando la configuración de tu proyecto de Firebase, catálogo y pedidos se comparten entre el taller y el móvil.</div>
+      <div class="field"><label>Configuración de Firebase (JSON)</label>
+        <textarea id="fbcfg" style="min-height:120px;font-family:var(--f-mono);font-size:12.5px" placeholder='{"apiKey":"...","authDomain":"...","projectId":"...","storageBucket":"...","messagingSenderId":"...","appId":"..."}'>${s.fb ? esc(typeof s.fb==='string'?s.fb:JSON.stringify(s.fb)) : ''}</textarea>
+        <div class="hint">Necesita una colección <span class="mono">sitio</span> con un documento <span class="mono">datos</span>. Reglas de escritura: ábrelas solo para usuarios autenticados si vas a usarlo en producción.</div>
+      </div>
+      <div style="display:flex;gap:8px"><button class="btn sm" id="fb-save">Guardar y conectar</button>
+      <button class="btn ghost sm" id="fb-off">Desconectar</button></div>
+    </div></div>
+
+    <div class="panel"><h3>Copia de seguridad</h3><div class="pad">
+      <div id="espacio" style="margin-bottom:18px"></div>
+      <p style="font-size:14px;color:var(--muted);margin-bottom:14px">Exporta un archivo con todo (catálogo, pedidos, textos) para guardarlo o llevarlo a otro equipo.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn sm" id="exp">Exportar copia</button>
+        <button class="btn ghost sm" id="imp">Importar copia</button>
+        <input type="file" id="impf" accept="application/json" style="display:none">
+        <button class="btn ghost sm danger" id="reset" style="margin-left:auto;color:var(--red);border-color:#F3C9C9">Restaurar datos de ejemplo</button>
+      </div>
+    </div></div>`;
+  enlazarCampos();
+
+  // cuánto ocupan los datos: importa cuando se suben fotos
+  (()=>{
+    const bytes = new Blob([JSON.stringify(DB)]).size;
+    const fotos = DB.products.filter(p=>String(p.img||'').startsWith('data:'));
+    const pesoFotos = fotos.reduce((s,p)=>s+p.img.length,0);
+    const tope = 5*1024*1024;
+    const pct = Math.min(100, Math.round(bytes/tope*100));
+    const kb = n => n>1024*1024 ? (n/1024/1024).toFixed(1)+' MB' : Math.round(n/1024)+' KB';
+    $('#espacio').innerHTML = `
+      <div style="display:flex;justify-content:space-between;font-size:13.5px">
+        <span><b>${kb(bytes)}</b> guardados en este navegador</span>
+        <span class="mono" style="color:var(--muted)">${pct}% del límite</span></div>
+      <div class="medidor"><i class="${pct>85?'tope':pct>60?'lleno':''}" style="width:${Math.max(2,pct)}%"></i></div>
+      <div style="font-size:12.5px;color:var(--muted)">
+        ${fotos.length ? `${fotos.length} foto${fotos.length>1?'s':''} subida${fotos.length>1?'s':''} ocupan ${kb(pesoFotos)}. ` : ''}
+        Si te acercas al límite, sube los JPG al repositorio y en cada producto escribe la ruta en vez de subir el archivo.</div>`;
+  })();
+
+  $('#fb-save').onclick=async()=>{
+    const v=$('#fbcfg').value.trim();
+    if(!v){ toast('Pega la configuración primero'); return; }
+    try{ JSON.parse(v); }catch(e){ toast('Ese JSON no es válido'); return; }
+    DB.settings.fb = v; save(false); await fbInit(); toast('Configuración guardada');
+  };
+  $('#fb-off').onclick=()=>{ DB.settings.fb=null; fb.listo=false; save(false); syncEstado(false,'Solo este dispositivo'); secAjustes(); toast('Sincronización desactivada'); };
+  $('#exp').onclick=()=>{
+    const blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=`nuevoimpacto-${hoy()}.json`;
+    a.click(); URL.revokeObjectURL(a.href);
+  };
+  $('#imp').onclick=()=>$('#impf').click();
+  $('#impf').onchange=e=>{
+    const f=e.target.files[0]; if(!f) return;
+    const r=new FileReader();
+    r.onload=()=>{
+      try{
+        const d=JSON.parse(r.result);
+        if(!d.products || !d.cats) throw 0;
+        DB=d; save(); admRender(); toast('Copia importada');
+      }catch(err){ toast('El archivo no tiene el formato esperado'); }
+    };
+    r.readAsText(f);
+  };
+  $('#reset').onclick=()=>{
+    if(!confirm('Se borrarán tus cambios y volverán los datos de ejemplo. ¿Seguro?')) return;
+    DB=clone(DEMO); save(); admRender(); toast('Datos de ejemplo restaurados');
+  };
+}
+
+/* enlaza los inputs con data-s (settings) y data-arr (bloques de texto) */
+function enlazarCampos(){
+  B.querySelectorAll('[data-s]').forEach(inp=>{
+    const k=inp.dataset.s;
+    const ev = inp.type==='color' ? 'input' : 'change';
+    inp.addEventListener(ev, e=>{
+      DB.settings[k] = (k==='iva') ? (+e.target.value||0) : e.target.value;
+      save(false);
+      if(k==='acento') document.documentElement.style.setProperty('--acc', e.target.value);
+    });
+  });
+  B.querySelectorAll('[data-arr]').forEach(inp=>{
+    inp.addEventListener('change', e=>{
+      DB[e.target.dataset.arr][+e.target.dataset.i][e.target.dataset.k] = e.target.value;
+      save(false);
+    });
+  });
+}
+
+/* ============================================================
+   10. ARRANQUE
+   ============================================================ */
+// el logotipo va una sola vez en el documento y se clona donde haga falta
+const LOGO = $('#logo-tpl').innerHTML;
+['#t-logo','#f-logo','#l-logo','#a-logo'].forEach(s=>{ const el=$(s); if(el) el.innerHTML = LOGO; });
+
+renderTienda();
+enlazarCierres();
+</script>
+</body>
+</html>
