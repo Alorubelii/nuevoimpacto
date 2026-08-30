@@ -169,6 +169,16 @@ section{padding:64px 0}
 .card:hover{border-color:var(--ink);box-shadow:var(--shadow)}
 .card .thumb{aspect-ratio:4/3;background:var(--smoke);position:relative;display:grid;place-items:center;overflow:hidden;border-bottom:1px solid var(--line)}
 .card .thumb svg{width:64%;height:auto}
+.card .thumb img{width:100%;height:100%;object-fit:cover}
+.mb-left .art img{width:100%;height:100%;object-fit:cover;border-radius:9px}
+.cart-line .mini img{width:100%;height:100%;object-fit:cover;border-radius:7px}
+.tmini img{width:100%;height:100%;object-fit:cover;border-radius:6px}
+.fotobox{border:1.5px dashed var(--line);border-radius:9px;padding:14px;text-align:center;font-size:13px;color:var(--muted)}
+.fotobox img{max-height:120px;width:auto;margin:0 auto 10px;border-radius:6px}
+.medidor{height:7px;background:var(--line);border-radius:4px;overflow:hidden;margin:10px 0 6px}
+.medidor i{display:block;height:100%;background:var(--ok)}
+.medidor i.lleno{background:var(--warn)}
+.medidor i.tope{background:var(--red)}
 .card .badge{position:absolute;top:10px;left:10px;background:var(--ink);color:#fff;font-family:var(--f-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:4px 8px;border-radius:5px}
 .card .body{padding:14px 15px 16px;display:flex;flex-direction:column;gap:5px;flex:1}
 .card .tech{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
@@ -1016,6 +1026,10 @@ const activos = ()=> DB.products.filter(p=>p.on!==false);
 // sentido enseñar precio por unidad ni porcentaje de ahorro.
 const porTirada = p => p.tiers.every((t,i)=> i===0 ||
   (t[1]/t[0]) <= (p.tiers[i-1][1]/p.tiers[i-1][0]) + 1e-9);
+// Si el producto tiene foto se usa la foto; si no, la ilustración vectorial.
+const foto = p => p.img
+  ? `<img src="${esc(p.img)}" alt="${esc(p.nom)}" loading="lazy">`
+  : (ART[p.art] || ART.flyer);
 
 function renderTienda(){
   const s = DB.settings;
@@ -1089,7 +1103,7 @@ function pintarDestacados(){
   l.forEach(p=>{
     const desde = Math.min(...p.tiers.map(t=>+t[1]));
     const b=document.createElement('button'); b.className='card';
-    b.innerHTML=`<div class="thumb"><span class="badge">${esc(p.badge)}</span>${ART[p.art]||ART.flyer}</div>
+    b.innerHTML=`<div class="thumb"><span class="badge">${esc(p.badge)}</span>${foto(p)}</div>
       <div class="body"><span class="tech">${esc(p.tech)}</span><h3>${esc(p.nom)}</h3>
       <p class="desc">${esc(p.desc)}</p>
       <div class="price"><b>${eur(desde)}</b><span>${porTirada(p)?'desde ':''}${esc(tierLabel(p.tiers[0]))}</span></div></div>`;
@@ -1152,7 +1166,7 @@ function pintarGrid(){
   lista.forEach(p=>{
     const desde = Math.min(...p.tiers.map(t=>+t[1]));
     const b=document.createElement('button'); b.className='card';
-    b.innerHTML=`<div class="thumb">${p.badge?`<span class="badge">${esc(p.badge)}</span>`:''}${ART[p.art]||ART.flyer}</div>
+    b.innerHTML=`<div class="thumb">${p.badge?`<span class="badge">${esc(p.badge)}</span>`:''}${foto(p)}</div>
       <div class="body"><span class="tech">${esc(p.tech)}</span><h3>${esc(p.nom)}</h3>
       <p class="desc">${esc(p.desc)}</p>
       <div class="price"><b>${eur(desde)}</b><span>${porTirada(p)?'desde ':''}${esc(tierLabel(p.tiers[0]))}</span></div></div>`;
@@ -1187,7 +1201,8 @@ function abrirProducto(p){
   $('#m-tech').textContent=p.tech;
   $('#m-desc').textContent=p.desc;
   $('#m-sku').textContent='REF ' + p.id.toUpperCase() + ' · ' + catNom(p.cat);
-  $('#m-art').innerHTML = ART[p.art]||ART.flyer;
+  $('#m-art').innerHTML = foto(p);
+  $('#m-art').style.padding = p.img ? '0' : '26px';
   const box=$('#m-opts'); box.innerHTML='';
 
   const g0=document.createElement('div'); g0.className='opt-group';
@@ -1236,7 +1251,7 @@ function abrirProducto(p){
 $('#m-add').onclick=()=>{
   const r=calcular();
   const especs = grupos(actual.cat).map(o=>o.ch[sel[o.id]].n).join(' · ');
-  cesta.push({pid:actual.id, nom:actual.nom, art:actual.art, cant:r.label, especs, archivo, precio:r.total});
+  cesta.push({pid:actual.id, nom:actual.nom, art:actual.art, img:actual.img||'', cant:r.label, especs, archivo, precio:r.total});
   saveCesta(); pintarCesta(); cerrarTodo();
   toast(`${actual.nom} · ${r.label} en la cesta`);
 };
@@ -1258,7 +1273,7 @@ function pintarCesta(){
   body.innerHTML='';
   cesta.forEach((it,i)=>{
     const d=document.createElement('div'); d.className='cart-line';
-    d.innerHTML=`<div class="mini">${ART[it.art]||ART.flyer}</div>
+    d.innerHTML=`<div class="mini">${it.img?`<img src="${esc(it.img)}" alt="">`:(ART[it.art]||ART.flyer)}</div>
       <div class="info"><b>${esc(it.nom)}</b><div class="spec">${esc(it.cant)} · ${esc(it.especs)}${it.archivo?`<br>Arte: ${esc(it.archivo)}`:''}</div></div>
       <div class="side"><b>${eur(it.precio)}</b><button class="linkbtn" data-del="${i}">Quitar</button></div>`;
     body.appendChild(d);
@@ -1564,8 +1579,8 @@ function secProductos(){
     <div class="panel"><table class="adm">
       <thead><tr><th></th><th>Producto</th><th>Categoría</th><th>Tramos</th><th>Desde</th><th>Estado</th><th></th></tr></thead>
       <tbody>${lista.map(p=>`
-        <tr><td><div class="tmini">${ART[p.art]||ART.flyer}</div></td>
-        <td><b>${esc(p.nom)}</b><br><span class="mono" style="font-size:11px;color:var(--muted)">${esc(p.tech)}</span></td>
+        <tr><td><div class="tmini">${foto(p)}</div></td>
+        <td><b>${esc(p.nom)}</b>${p.img?' <span class="mono" style="font-size:10px;color:var(--ok)">FOTO</span>':''}<br><span class="mono" style="font-size:11px;color:var(--muted)">${esc(p.tech)}</span></td>
         <td style="font-size:13.5px">${esc(catNom(p.cat))}</td>
         <td class="mono" style="font-size:12px;color:var(--muted)">${p.tiers.map(t=>tierLabel(t)).join(' · ')}</td>
         <td style="font-weight:600;white-space:nowrap">${eur(Math.min(...p.tiers.map(t=>+t[1])))}</td>
@@ -1611,6 +1626,12 @@ function editarProducto(id){
       <div class="field"><label>Ilustración</label><select id="e-art">${ART_KEYS.map(k=>`<option ${p.art===k?'selected':''}>${k}</option>`).join('')}</select></div>
     </div>
     <div id="e-prev" style="border:1px solid var(--line);border-radius:8px;padding:10px;width:90px;margin-bottom:14px">${ART[p.art]}</div>
+    <div class="field"><label>Foto del producto</label>
+      <div class="fotobox" id="e-fotobox"></div>
+      <input type="file" id="e-fotofile" accept="image/*" style="display:none">
+      <input id="e-fotourl" value="${esc(p.img && !String(p.img).startsWith('data:') ? p.img : '')}" placeholder="…o pega una ruta: fotos/tarjetas.jpg" style="margin-top:8px;font-family:var(--f-mono);font-size:12.5px">
+      <div class="hint">Si no pones foto se usa la ilustración de arriba. Lo más ligero es subir los JPG al repositorio y escribir aquí <span class="mono">fotos/nombre.jpg</span>.</div>
+    </div>
     <div class="grid2">
       <div class="field"><label>Etiqueta técnica</label><input id="e-tech" value="${esc(p.tech)}" placeholder="Offset · 350 g"></div>
       <div class="field"><label>Distintivo</label><input id="e-badge" value="${esc(p.badge)}" placeholder="Más pedido (opcional)"></div>
@@ -1652,10 +1673,34 @@ function editarProducto(id){
   pintarTiers();
   $('#e-addtier').onclick=()=>{ const u=p.tiers[p.tiers.length-1]; p.tiers.push([(+u[0])*2, Math.round((+u[1])*1.8), '']); pintarTiers(); };
   $('#e-art').onchange=e=>{ $('#e-prev').innerHTML = ART[e.target.value]; };
+
+  // --- foto: subir del disco (se reescala) o apuntar a una ruta ---
+  const pintarFoto=()=>{
+    const b=$('#e-fotobox');
+    b.innerHTML = p.img
+      ? `<img src="${esc(p.img)}" alt=""><div><button type="button" class="ibtn" id="e-fotocambia">Cambiar</button>
+         <button type="button" class="ibtn del" id="e-fotoquita">Quitar foto</button></div>
+         <div class="mono" style="font-size:10.5px;margin-top:8px">${String(p.img).startsWith('data:')?`subida · ${Math.round(p.img.length/1024)} KB`:esc(p.img)}</div>`
+      : `<b style="display:block;color:var(--ink);margin-bottom:4px">Sin foto</b>Se ve la ilustración vectorial.
+         <div style="margin-top:10px"><button type="button" class="ibtn" id="e-fotocambia">Subir una foto</button></div>`;
+    const c=$('#e-fotocambia'); if(c) c.onclick=()=>$('#e-fotofile').click();
+    const q=$('#e-fotoquita'); if(q) q.onclick=()=>{ p.img=''; $('#e-fotourl').value=''; pintarFoto(); };
+  };
+  pintarFoto();
+  $('#e-fotofile').onchange=e=>{
+    const f=e.target.files[0]; if(!f) return;
+    reducirFoto(f, 760, 0.72, d=>{ p.img=d; $('#e-fotourl').value=''; pintarFoto(); });
+  };
+  $('#e-fotourl').oninput=e=>{
+    const v=e.target.value.trim();
+    if(v || String(p.img).startsWith('data:') === false){ p.img=v; pintarFoto(); }
+  };
   $('#e-save').onclick=()=>{
     p.nom=$('#e-nom').value.trim(); p.cat=$('#e-cat').value; p.art=$('#e-art').value;
     p.tech=$('#e-tech').value.trim(); p.badge=$('#e-badge').value.trim();
     p.desc=$('#e-desc').value.trim(); p.on=$('#e-on').checked;
+    const u=$('#e-fotourl').value.trim();
+    if(u) p.img=u;
     if(!p.nom){ toast('Ponle un nombre al producto'); return; }
     if(!p.tiers.length || p.tiers.some(t=>!t[0])){ toast('Revisa los tramos de tirada'); return; }
     p.tiers.sort((a,b)=>a[0]-b[0]);
@@ -1666,11 +1711,32 @@ function editarProducto(id){
 }
 
 
+/* Reduce la foto antes de guardarla: una foto de móvil son 4 MB y aquí
+   con 760 px de lado largo sobra para una ficha de producto. */
+function reducirFoto(archivo, max, calidad, cb){
+  const r=new FileReader();
+  r.onload=()=>{
+    const im=new Image();
+    im.onload=()=>{
+      const k=Math.min(1, max/Math.max(im.width, im.height));
+      const c=document.createElement('canvas');
+      c.width=Math.round(im.width*k); c.height=Math.round(im.height*k);
+      c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+      const d=c.toDataURL('image/jpeg', calidad);
+      if(d.length > 700*1024){ toast('La foto sigue pesando mucho; prueba con una más pequeña'); return; }
+      cb(d);
+    };
+    im.onerror=()=>toast('No se ha podido leer esa imagen');
+    im.src=r.result;
+  };
+  r.readAsDataURL(archivo);
+}
+
 /* ---- Tarifa en CSV --------------------------------------------------------
    Un producto por fila. Los tramos van en una sola columna:
    "100:22 | 250:29 | 500:39"  o con etiqueta:  "1:450:Parcial | 2:780:Media"
    Separador punto y coma, que es lo que espera el Excel en español.       */
-const CSV_CAB = ['id','categoria','nombre','ilustracion','tecnica','descripcion','distintivo','visible','tramos'];
+const CSV_CAB = ['id','categoria','nombre','ilustracion','foto','tecnica','descripcion','distintivo','visible','tramos'];
 
 function csvCampo(v){
   v = String(v ?? '');
@@ -1694,7 +1760,9 @@ function textoATramos(txt){
 function exportarTarifa(){
   const filas = [CSV_CAB.join(';')];
   DB.products.forEach(p=>{
-    filas.push([p.id, p.cat, p.nom, p.art, p.tech, p.desc, p.badge||'',
+    // las fotos subidas no caben en un CSV; se exporta solo la ruta
+    const img = String(p.img||'').startsWith('data:') ? '(subida)' : (p.img||'');
+    filas.push([p.id, p.cat, p.nom, p.art, img, p.tech, p.desc, p.badge||'',
                 p.on===false?'no':'si', tramosATexto(p.tiers)].map(csvCampo).join(';'));
   });
   // el BOM hace que Excel abra bien los acentos
@@ -1750,6 +1818,8 @@ function importarTarifa(archivo){
         tech: dato('tecnica') || (viejo ? viejo.tech : ''),
         desc: dato('descripcion') || (viejo ? viejo.desc : ''),
         badge: dato('distintivo'), tiers,
+        img: (()=>{ const v=dato('foto');
+              return (!v || v==='(subida)') ? (viejo ? viejo.img||'' : '') : v; })(),
         on: /^(no|0|false|oculto)$/i.test(dato('visible')) ? false : true
       };
       (viejo ? cambios : nuevos).push({reg, viejo});
@@ -2024,6 +2094,7 @@ function secAjustes(){
     </div></div>
 
     <div class="panel"><h3>Copia de seguridad</h3><div class="pad">
+      <div id="espacio" style="margin-bottom:18px"></div>
       <p style="font-size:14px;color:var(--muted);margin-bottom:14px">Exporta un archivo con todo (catálogo, pedidos, textos) para guardarlo o llevarlo a otro equipo.</p>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn sm" id="exp">Exportar copia</button>
@@ -2033,6 +2104,25 @@ function secAjustes(){
       </div>
     </div></div>`;
   enlazarCampos();
+
+  // cuánto ocupan los datos: importa cuando se suben fotos
+  (()=>{
+    const bytes = new Blob([JSON.stringify(DB)]).size;
+    const fotos = DB.products.filter(p=>String(p.img||'').startsWith('data:'));
+    const pesoFotos = fotos.reduce((s,p)=>s+p.img.length,0);
+    const tope = 5*1024*1024;
+    const pct = Math.min(100, Math.round(bytes/tope*100));
+    const kb = n => n>1024*1024 ? (n/1024/1024).toFixed(1)+' MB' : Math.round(n/1024)+' KB';
+    $('#espacio').innerHTML = `
+      <div style="display:flex;justify-content:space-between;font-size:13.5px">
+        <span><b>${kb(bytes)}</b> guardados en este navegador</span>
+        <span class="mono" style="color:var(--muted)">${pct}% del límite</span></div>
+      <div class="medidor"><i class="${pct>85?'tope':pct>60?'lleno':''}" style="width:${Math.max(2,pct)}%"></i></div>
+      <div style="font-size:12.5px;color:var(--muted)">
+        ${fotos.length ? `${fotos.length} foto${fotos.length>1?'s':''} subida${fotos.length>1?'s':''} ocupan ${kb(pesoFotos)}. ` : ''}
+        Si te acercas al límite, sube los JPG al repositorio y en cada producto escribe la ruta en vez de subir el archivo.</div>`;
+  })();
+
   $('#fb-save').onclick=async()=>{
     const v=$('#fbcfg').value.trim();
     if(!v){ toast('Pega la configuración primero'); return; }
