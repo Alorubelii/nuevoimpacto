@@ -1405,7 +1405,11 @@ function secProductos(){
     (admCat==='todo'||p.cat===admCat) &&
     (!admBusca || (p.nom+p.tech+p.desc).toLowerCase().includes(admBusca)));
   B.innerHTML = head('Productos','Precios por tramo de tirada. Lo que guardes aquí sale en la tienda al momento.',
-    '<button class="btn pink sm" id="nuevo">Nuevo producto</button>') + `
+    `<button class="btn ghost sm" id="csv-exp">Exportar tarifa</button>
+     <button class="btn ghost sm" id="csv-imp">Importar tarifa</button>
+     <input type="file" id="csv-file" accept=".csv,text/csv" style="display:none">
+     <button class="btn ghost sm" id="precios">Ajustar precios</button>
+     <button class="btn pink sm" id="nuevo">Nuevo producto</button>`) + `
     <div class="toolbar">
       <input id="qb" placeholder="Buscar producto" value="${esc(admBusca)}" style="min-width:240px">
       <select id="cb"><option value="todo">Todas las categorías</option>${DB.cats.map(c=>`<option value="${c.id}" ${admCat===c.id?'selected':''}>${esc(c.nom)}</option>`).join('')}</select>
@@ -1430,6 +1434,10 @@ function secProductos(){
   $('#qb').oninput=e=>{ admBusca=e.target.value.toLowerCase(); secProductos(); };
   $('#cb').onchange=e=>{ admCat=e.target.value; secProductos(); };
   $('#nuevo').onclick=()=>editarProducto(null);
+  $('#csv-exp').onclick=exportarTarifa;
+  $('#csv-imp').onclick=()=>$('#csv-file').click();
+  $('#csv-file').onchange=e=>{ const f=e.target.files[0]; if(f) importarTarifa(f); e.target.value=''; };
+  $('#precios').onclick=dialogoPrecios;
   B.querySelectorAll('[data-ed]').forEach(b=> b.onclick=()=>editarProducto(b.dataset.ed));
   B.querySelectorAll('[data-tog]').forEach(b=> b.onclick=()=>{
     const p=DB.products.find(x=>x.id===b.dataset.tog); p.on = p.on===false; save(false); admRender();
@@ -1508,6 +1516,176 @@ function editarProducto(id){
     const i=DB.products.findIndex(x=>x.id===p.id);
     if(i>=0) DB.products[i]=p; else DB.products.push(p);
     save(false); cerrarTodo(); admRender(); toast('Producto guardado');
+  };
+}
+
+
+/* ---- Tarifa en CSV --------------------------------------------------------
+   Un producto por fila. Los tramos van en una sola columna:
+   "100:22 | 250:29 | 500:39"  o con etiqueta:  "1:450:Parcial | 2:780:Media"
+   Separador punto y coma, que es lo que espera el Excel en español.       */
+const CSV_CAB = ['id','categoria','nombre','ilustracion','tecnica','descripcion','distintivo','visible','tramos'];
+
+function csvCampo(v){
+  v = String(v ?? '');
+  return /[;"\n\r]/.test(v) ? '"' + v.replace(/"/g,'""') + '"' : v;
+}
+function tramosATexto(tiers){
+  return tiers.map(t => t[2] ? `${t[0]}:${t[1]}:${t[2]}` : `${t[0]}:${t[1]}`).join(' | ');
+}
+function textoATramos(txt){
+  const out = [];
+  String(txt).split('|').forEach(bloque=>{
+    const p = bloque.trim().split(':');
+    if(p.length < 2) return;
+    const q = parseFloat(String(p[0]).replace(',','.'));
+    const pr = parseFloat(String(p[1]).replace(',','.'));
+    if(!(q > 0) || !(pr >= 0)) return;
+    out.push([q, Math.round(pr*100)/100, (p[2] || '').trim()]);
+  });
+  return out.sort((a,b)=>a[0]-b[0]);
+}
+function exportarTarifa(){
+  const filas = [CSV_CAB.join(';')];
+  DB.products.forEach(p=>{
+    filas.push([p.id, p.cat, p.nom, p.art, p.tech, p.desc, p.badge||'',
+                p.on===false?'no':'si', tramosATexto(p.tiers)].map(csvCampo).join(';'));
+  });
+  // el BOM hace que Excel abra bien los acentos
+  const blob = new Blob(['\ufeff' + filas.join('\r\n')], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `tarifa-${DB.settings.marca.toLowerCase().replace(/\s+/g,'-')}-${hoy()}.csv`;
+  a.click(); URL.revokeObjectURL(a.href);
+  toast(`Tarifa exportada · ${DB.products.length} productos`);
+}
+function leerCSV(txt){
+  txt = txt.replace(/^\ufeff/, '');
+  const filas = [];
+  let campo = '', fila = [], comillas = false;
+  for(let i=0; i<txt.length; i++){
+    const c = txt[i];
+    if(comillas){
+      if(c === '"' && txt[i+1] === '"'){ campo += '"'; i++; }
+      else if(c === '"'){ comillas = false; }
+      else campo += c;
+    } else if(c === '"'){ comillas = true; }
+    else if(c === ';'){ fila.push(campo); campo = ''; }
+    else if(c === '\n'){ fila.push(campo); filas.push(fila); fila = []; campo = ''; }
+    else if(c !== '\r'){ campo += c; }
+  }
+  if(campo !== '' || fila.length){ fila.push(campo); filas.push(fila); }
+  return filas.filter(f => f.some(v => v.trim() !== ''));
+}
+function importarTarifa(archivo){
+  const r = new FileReader();
+  r.onload = ()=>{
+    const filas = leerCSV(r.result);
+    if(filas.length < 2){ toast('El archivo está vacío o no usa punto y coma'); return; }
+    const cab = filas[0].map(c => c.trim().toLowerCase());
+    const col = n => cab.indexOf(n);
+    if(col('nombre') < 0 || col('tramos') < 0){
+      toast('Faltan las columnas "nombre" y "tramos"'); return;
+    }
+    const nuevos = [], cambios = [], fallos = [];
+    filas.slice(1).forEach((f, n)=>{
+      const dato = k => (col(k) >= 0 ? (f[col(k)] || '').trim() : '');
+      const nom = dato('nombre');
+      if(!nom) return;
+      const tiers = textoATramos(dato('tramos'));
+      if(!tiers.length){ fallos.push(`Fila ${n+2} · ${nom}: tramos ilegibles`); return; }
+      const cat = dato('categoria') || DB.cats[0].id;
+      if(!DB.cats.some(c => c.id === cat)){ fallos.push(`Fila ${n+2} · ${nom}: la categoría "${cat}" no existe`); return; }
+      const art = ART[dato('ilustracion')] ? dato('ilustracion') : 'flyer';
+      const id = dato('id');
+      const viejo = id ? DB.products.find(p => p.id === id) : DB.products.find(p => p.nom === nom);
+      const reg = {
+        id: viejo ? viejo.id : uid(), cat, nom, art,
+        tech: dato('tecnica') || (viejo ? viejo.tech : ''),
+        desc: dato('descripcion') || (viejo ? viejo.desc : ''),
+        badge: dato('distintivo'), tiers,
+        on: /^(no|0|false|oculto)$/i.test(dato('visible')) ? false : true
+      };
+      (viejo ? cambios : nuevos).push({reg, viejo});
+    });
+    if(!nuevos.length && !cambios.length){
+      dlg('No se ha podido importar', `<p style="font-size:14px">Ninguna fila era válida.</p>
+        <div class="note" style="margin-top:14px"><b>Revisa</b>${fallos.slice(0,6).map(esc).join('<br>') || 'El separador debe ser punto y coma.'}</div>`,
+        '<button class="btn block" data-close>Cerrar</button>');
+      enlazarCierres(); return;
+    }
+    const muestra = cambios.filter(c => tramosATexto(c.viejo.tiers) !== tramosATexto(c.reg.tiers)).slice(0,6);
+    dlg('Confirma la importación', `
+      <div class="kpis" style="grid-template-columns:1fr 1fr;margin-bottom:16px">
+        <div class="kpi"><div class="k">Se actualizan</div><div class="v">${cambios.length}</div><div class="s">productos ya existentes</div></div>
+        <div class="kpi"><div class="k">Se crean</div><div class="v">${nuevos.length}</div><div class="s">productos nuevos</div></div>
+      </div>
+      ${muestra.length ? `<div class="panel" style="margin-bottom:0"><h3>Cambios de precio</h3><table class="adm"><tbody>${
+        muestra.map(c=>`<tr><td>${esc(c.reg.nom)}</td>
+          <td class="mono" style="font-size:11.5px;color:var(--muted);text-align:right">${esc(tramosATexto(c.viejo.tiers))}<br>→ ${esc(tramosATexto(c.reg.tiers))}</td></tr>`).join('')
+      }</tbody></table></div>` : ''}
+      ${fallos.length ? `<div class="note" style="margin-top:14px"><b>${fallos.length} fila${fallos.length>1?'s':''} sin importar</b>${fallos.slice(0,5).map(esc).join('<br>')}</div>` : ''}`,
+      `<button class="btn ghost sm" data-close>Cancelar</button><button class="btn pink" id="imp-ok">Aplicar cambios</button>`);
+    $('#dlg-foot').style.justifyContent='space-between';
+    enlazarCierres();
+    $('#imp-ok').onclick=()=>{
+      [...cambios, ...nuevos].forEach(({reg, viejo})=>{
+        if(viejo) Object.assign(viejo, reg);
+        else DB.products.push(reg);
+      });
+      save(false); cerrarTodo(); admRender();
+      toast(`Tarifa importada · ${cambios.length} actualizados, ${nuevos.length} nuevos`);
+    };
+  };
+  r.readAsText(archivo, 'utf-8');
+}
+
+/* ---- Subir o bajar precios en bloque ---- */
+function dialogoPrecios(){
+  dlg('Ajustar precios', `
+    <p style="font-size:14px;color:var(--muted);margin-bottom:16px">Aplica un porcentaje a todos los tramos de los productos que elijas. Útil cuando sube el papel o el textil y hay que repasar la tarifa entera.</p>
+    <div class="grid2">
+      <div class="field"><label>Aplicar a</label><select id="ap-cat">
+        <option value="todo">Todo el catálogo (${DB.products.length})</option>
+        ${DB.cats.map(c=>`<option value="${c.id}">${esc(c.nom)} (${DB.products.filter(p=>p.cat===c.id).length})</option>`).join('')}
+      </select></div>
+      <div class="field"><label>Porcentaje</label><input type="number" id="ap-pct" value="5" step="0.5">
+        <div class="hint">En negativo para bajar precios.</div></div>
+    </div>
+    <div class="field"><label>Redondeo</label><select id="ap-red">
+      <option value="0.01">Al céntimo</option>
+      <option value="1" selected>Al euro</option>
+      <option value="5">A múltiplos de 5 €</option>
+    </select></div>
+    <div class="note" id="ap-prev" style="margin-bottom:0"></div>`,
+    `<button class="btn ghost sm" data-close>Cancelar</button><button class="btn pink" id="ap-ok">Aplicar</button>`);
+  $('#dlg-foot').style.justifyContent='space-between';
+  enlazarCierres();
+
+  const afectados = ()=> $('#ap-cat').value === 'todo'
+      ? DB.products : DB.products.filter(p => p.cat === $('#ap-cat').value);
+  const nuevoPrecio = v =>{
+    const r = +$('#ap-red').value;
+    const n = v * (1 + (+$('#ap-pct').value || 0)/100);
+    return Math.max(0, Math.round(n / r) * r);
+  };
+  const preview = ()=>{
+    const l = afectados();
+    const p = l[0];
+    $('#ap-prev').innerHTML = !p ? 'No hay productos en esa selección.'
+      : `<b>Vista previa</b>${esc(p.nom)}: ${eur(p.tiers[0][1])} → ${eur(nuevoPrecio(p.tiers[0][1]))} · afecta a ${l.length} producto${l.length>1?'s':''}`;
+  };
+  ['#ap-cat','#ap-pct','#ap-red'].forEach(s => $(s).oninput = preview);
+  $('#ap-cat').onchange = preview;
+  preview();
+
+  $('#ap-ok').onclick=()=>{
+    const l = afectados();
+    if(!l.length){ toast('No hay productos que ajustar'); return; }
+    if(!confirm(`Se van a cambiar los precios de ${l.length} productos. ¿Seguir?`)) return;
+    l.forEach(p => p.tiers = p.tiers.map(t => [t[0], nuevoPrecio(t[1]), t[2] || '']));
+    save(false); cerrarTodo(); admRender();
+    toast(`Precios ajustados en ${l.length} productos`);
   };
 }
 
