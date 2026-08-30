@@ -9,7 +9,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%2377002A%22/%3E%3Cpath%20d%3D%22M32%2012l5.6%2013.2L52%2026.4l-10.8%209.3%203.2%2014L32%2042.3%2019.6%2049.7l3.2-14L12%2026.4l14.4-1.2z%22%20fill%3D%22%23fff%22/%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2231%22%20r%3D%224.4%22%20fill%3D%22%23FF0000%22/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 /* ============================================================
    NUEVO IMPACTO — tienda + panel de administración
@@ -444,6 +444,168 @@ table.adm tr:hover td{background:#FCFCFD}
 .login .box .mk{width:46px;height:46px;border-radius:11px;background:var(--ink);display:grid;place-items:center;color:#fff;margin:0 auto 16px}
 .login input{width:100%;text-align:center;font-family:var(--f-mono);font-size:22px;letter-spacing:.4em;border:1.5px solid var(--line);border-radius:10px;padding:14px;margin:18px 0 12px;outline:0}
 .login input:focus{border-color:var(--ink)}
+
+/* ---------------- personalizador ---------------- */
+.pers{border:2px solid var(--line);border-radius:18px;overflow:hidden;margin-bottom:22px}
+.pers .lienzo{background:var(--crema);padding:14px;position:relative}
+.pers svg.prenda{width:100%;max-height:330px;display:block;margin:0 auto}
+.pers .vistas{position:absolute;top:14px;left:14px;display:flex;gap:6px;background:#fff;border:2px solid var(--line);border-radius:99px;padding:3px}
+.pers .vistas button{border:0;background:none;border-radius:99px;padding:6px 14px;font-size:13px;font-weight:600;color:var(--muted)}
+.pers .vistas button[aria-pressed="true"]{background:var(--ink);color:#fff}
+.pers .cuerpo{padding:16px 18px 18px}
+.zona{border:2px dashed var(--line);border-radius:12px;padding:11px 13px;display:flex;gap:12px;align-items:center;margin-bottom:8px;background:#fff}
+.zona.puesta{border-style:solid;border-color:var(--ink)}
+.zona .mini{width:44px;height:44px;flex:0 0 44px;border-radius:9px;background:var(--crema);display:grid;place-items:center;overflow:hidden}
+.zona .mini img{width:100%;height:100%;object-fit:contain}
+.zona .txt{flex:1;min-width:0}
+.zona .txt b{display:block;font-size:14.5px;font-family:var(--f-display);font-weight:600}
+.zona .txt span{font-size:12.5px;color:var(--muted)}
+.zona input[type=file]{display:none}
+.zona .acc{display:flex;gap:6px;align-items:center}
+.colores{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.colores button{width:34px;height:34px;border-radius:50%;border:2px solid var(--line);position:relative}
+.colores button[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 3px #fff}
+.tallas{display:grid;grid-template-columns:repeat(auto-fit,minmax(74px,1fr));gap:8px}
+.tallas label{display:block;text-align:center;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:4px}
+.tallas input{width:100%;border:2px solid var(--line);border-radius:10px;padding:9px 6px;text-align:center;font-family:var(--f-mono);outline:0}
+.tallas input:focus{border-color:var(--ink)}
+.cuadre{font-size:13px;margin-top:10px;font-weight:600}
+.cuadre.mal{color:var(--warn)}
+.cuadre.bien{color:var(--ok)}
+.slider{width:100%;accent-color:var(--acc)}
+
+/* ============================================================
+   CAPA DE ESTILO — versión amable
+   Se aplica encima de lo anterior. La idea: la marca es redonda,
+   gorda y con color, y la web tiene que parecerse a ella y no a
+   una hoja de cálculo. Formas suaves, aire y color por familia.
+   ============================================================ */
+:root{
+  --f-display:'Fredoka', system-ui, sans-serif;
+  --paper:#FFFFFF;
+  --crema:#FBF7F2;        /* fondo cálido para alternar secciones */
+  --smoke:#F6F3EF;
+  --line:#EAE4DC;
+  --ink:#1A1614;
+  --ink-70:#57504A;
+  --muted:#8A817A;
+  --r:16px;
+  --shadow:0 2px 4px rgba(26,22,20,.04), 0 12px 32px rgba(26,22,20,.07);
+  --shadow-alta:0 10px 20px rgba(26,22,20,.07), 0 26px 60px rgba(26,22,20,.11);
+}
+body{background:var(--paper); font-size:16.5px}
+h1,h2,h3,h4{font-family:var(--f-display); letter-spacing:-.01em; font-weight:600}
+h2{font-weight:600; line-height:1.12}
+h3{font-weight:600}
+
+/* botones con forma de pastilla, como las letras del logotipo */
+.btn{border-radius:99px; padding:14px 26px; font-weight:600; border-width:2px; transition:transform .15s, box-shadow .15s, background .15s}
+.btn:hover{transform:translateY(-1px)}
+.btn.pink{box-shadow:0 6px 18px color-mix(in srgb, var(--acc) 34%, transparent)}
+.btn.pink:hover{box-shadow:0 10px 26px color-mix(in srgb, var(--acc) 42%, transparent); filter:none; background:var(--acc)}
+.btn.sm{padding:9px 18px}
+.iconbtn{border-radius:99px; border-width:2px}
+.searchbox{border-radius:99px; border-width:2px; height:48px; background:#fff}
+.searchbox:focus-within{box-shadow:0 0 0 4px color-mix(in srgb, var(--acc) 12%, transparent)}
+.chip,.filtro{border-radius:99px; border-width:2px}
+.filtro{padding:10px 18px}
+
+/* cabecera con más aire */
+.headmain{height:84px; gap:26px}
+.topbar{background:var(--ink)}
+.menubtn{font-family:var(--f-display); font-size:16px}
+nav.cats a.main{font-size:15px}
+
+/* portada */
+.hero{background:linear-gradient(168deg, #FFF 0%, var(--crema) 58%, #FBEFF4 100%); border-bottom:0; position:relative; overflow:hidden}
+.hero::before{content:'';position:absolute;width:520px;height:520px;border-radius:50%;right:-160px;top:-190px;
+  background:radial-gradient(circle at 35% 35%, color-mix(in srgb, var(--yellow) 42%, transparent), transparent 62%);pointer-events:none}
+.hero::after{content:'';position:absolute;width:420px;height:420px;border-radius:50%;left:-170px;bottom:-230px;
+  background:radial-gradient(circle at 60% 40%, color-mix(in srgb, var(--cyan) 26%, transparent), transparent 64%);pointer-events:none}
+.hero .wrap{position:relative;z-index:1;padding-top:72px;padding-bottom:72px}
+.hero h1{font-weight:700; letter-spacing:-.02em; line-height:1.02}
+.hero p.lead{font-size:18.5px; color:var(--ink-70)}
+.kicker{background:#fff;border:2px solid var(--line);border-radius:99px;padding:8px 16px;display:inline-flex;
+  font-family:var(--f-body);font-size:12.5px;letter-spacing:.02em;text-transform:none;color:var(--ink-70);font-weight:600}
+.ot{border-radius:22px; border-width:2px; box-shadow:var(--shadow-alta)}
+.ot-swatches i{border-radius:9px}
+
+/* ventajas: iconos en círculo de color, sin rejilla de tabla */
+.perks{border-bottom:0; background:var(--paper); padding:10px 0 6px}
+.perks .wrap{gap:14px}
+.perk{border:2px solid var(--line); border-radius:var(--r); padding:20px 22px!important; align-items:center; background:#fff}
+.perk:not(:first-child){padding-left:22px}
+.perk svg{width:22px;height:22px;flex:0 0 40px;box-sizing:content-box;padding:9px;border-radius:50%;
+  background:color-mix(in srgb, var(--acc) 12%, transparent)}
+.perk b{font-family:var(--f-display);font-size:15.5px;font-weight:600}
+
+/* secciones */
+section{padding:76px 0}
+.eyebrow{font-family:var(--f-body); font-size:13px; letter-spacing:0; text-transform:none; font-weight:700}
+.sec-head p{font-size:16.5px}
+
+/* familias con color propio */
+.cat-grid{gap:14px}
+.cat-tile{border-width:2px; border-radius:20px; padding:22px 18px; transition:transform .18s, box-shadow .18s, border-color .18s}
+.cat-tile:hover{transform:translateY(-4px); box-shadow:var(--shadow)}
+.cat-tile .ico{height:52px; margin-bottom:16px}
+.cat-tile b{font-family:var(--f-display); font-size:16px; font-weight:600}
+.cat-tile span{font-family:var(--f-body); font-size:12.5px; letter-spacing:0}
+.cat-tile:nth-child(6n+1){background:color-mix(in srgb, var(--cyan) 8%, #fff)}
+.cat-tile:nth-child(6n+2){background:color-mix(in srgb, var(--acc) 7%, #fff)}
+.cat-tile:nth-child(6n+3){background:color-mix(in srgb, var(--yellow) 16%, #fff)}
+.cat-tile:nth-child(6n+4){background:color-mix(in srgb, var(--cyan) 13%, #fff)}
+.cat-tile:nth-child(6n+5){background:color-mix(in srgb, var(--acc) 11%, #fff)}
+.cat-tile:nth-child(6n+6){background:color-mix(in srgb, var(--yellow) 24%, #fff)}
+
+/* fichas de producto */
+.card{border-width:2px; border-radius:20px; transition:transform .18s, box-shadow .18s, border-color .18s}
+.card:hover{transform:translateY(-4px); box-shadow:var(--shadow-alta)}
+.card .thumb{background:var(--crema); border-bottom:0; aspect-ratio:1/.86}
+.card .body{padding:16px 18px 20px}
+.card .tech{font-family:var(--f-body); font-size:12px; letter-spacing:0; text-transform:none; color:var(--acc); font-weight:700}
+.card h3{font-size:17px}
+.card .desc{font-size:14px}
+.card .price b{font-family:var(--f-display); font-weight:600; font-size:22px}
+.card .badge{border-radius:99px; font-family:var(--f-body); font-size:11px; letter-spacing:0; text-transform:none; font-weight:700; padding:5px 11px}
+#catalogo{background:var(--crema)!important; border-color:var(--line)!important}
+#faq{background:var(--crema)!important}
+.contact{background:var(--crema)}
+
+/* sectores y preguntas */
+.sect article{border-width:2px; border-radius:20px; padding:26px}
+.sect h3{font-size:18px}
+.sect .lista{font-family:var(--f-body); font-size:13px; letter-spacing:0; border-top:2px solid var(--line)}
+.faq summary{font-size:18px; font-weight:600; padding:20px 44px 20px 0}
+.faq details{border-bottom:2px solid var(--line)}
+.faq .resp{font-size:15.5px}
+.specs{border-radius:20px}
+.steps{border-radius:20px}
+.step b{font-family:var(--f-display); font-weight:600}
+
+/* formularios y capas */
+.form{border-radius:22px; border-width:2px; padding:28px}
+.field input,.field textarea,.field select{border-radius:12px; border-width:2px; padding:12px 14px}
+.dato{border-radius:14px; border-width:2px}
+.modal{border-radius:22px}
+.drawer{border-radius:22px 0 0 22px}
+.tier{border-radius:14px; border-width:2px}
+.mega{border-radius:0 0 22px 22px}
+.megaitem{border-radius:14px}
+.megaitem .ico{border-radius:12px; background:var(--crema)}
+.mb-left{background:var(--crema)}
+.mb-left .art{border-radius:16px; border-width:2px}
+.pagobox{border-radius:16px; border-width:2px}
+.toast{border-radius:99px; padding:14px 24px}
+.cart-line .mini{border-radius:12px; background:var(--crema)}
+footer{background:var(--ink)}
+footer .cols{border-bottom-color:#2E2823}
+
+/* el panel se queda sobrio: es una herramienta de trabajo, no un escaparate */
+#admin{--r:12px}
+#admin .btn{border-radius:10px; padding:9px 16px}
+#admin .card{border-radius:12px}
+
 @media print{.no-print{display:none!important}}
 
 /* aviso de error: si algo peta en el navegador, que se vea */
@@ -1354,6 +1516,7 @@ function calcular(){
     base *= (+c.mult || 1);
     add  += (+c.add  || 0);
   });
+  add += recargoPers() * (+t[0]);      // zonas de marcaje adicionales
   return {total: Math.round((base+add)*100)/100, qty:+t[0], label:tierLabel(t)};
 }
 function pintarPrecio(){
@@ -1363,6 +1526,9 @@ function pintarPrecio(){
 }
 function abrirProducto(p){
   actual=p; selTier=0; sel={}; archivo=''; udActual=porTirada(p);
+  const tipoP = persDe(p);
+  per = null;
+  if(tipoP && PRENDAS[tipoP]) iniciarPers(tipoP);
   $('#m-title').textContent=p.nom;
   $('#m-tech').textContent=p.tech;
   $('#m-desc').textContent=p.desc;
@@ -1381,10 +1547,18 @@ function abrirProducto(p){
     const b=document.createElement('button'); b.className='tier';
     b.setAttribute('aria-pressed', i===0);
     b.innerHTML=`${udActual&&ah>=5?`<span class="save">−${ah}%</span>`:''}<div class="q">${esc(tierLabel(t))}</div><div class="u">${udActual?`${eur(ud)} / ud.`:eur(t[1])}</div>`;
-    b.onclick=()=>{ selTier=i; [...tw.children].forEach((c,j)=>c.setAttribute('aria-pressed', j===i)); pintarPrecio(); };
+    b.onclick=()=>{ selTier=i; [...tw.children].forEach((c,j)=>c.setAttribute('aria-pressed', j===i)); pintarPrecio(); if(per) pintarPers(); };
     tw.appendChild(b);
   });
   g0.appendChild(tw); box.appendChild(g0);
+
+  if(per){
+    const gp=document.createElement('div'); gp.className='opt-group';
+    gp.innerHTML=`<label class="head">Personaliza tu ${esc(PRENDAS[per.tipo].nom.toLowerCase())} <em>súbenos el arte de cada zona</em></label>
+      <div class="pers" id="pers"></div>`;
+    box.appendChild(gp);
+    pintarPers();          // el contenedor ya está en el documento
+  }
 
   grupos(p.cat).forEach(o=>{
     sel[o.id]=0;
@@ -1417,10 +1591,231 @@ function abrirProducto(p){
 $('#m-add').onclick=()=>{
   const r=calcular();
   const especs = grupos(actual.cat).map(o=>o.ch[sel[o.id]].n).join(' · ');
-  cesta.push({pid:actual.id, nom:actual.nom, art:actual.art, img:actual.img||'', cant:r.label, especs, archivo, precio:r.total});
+  const extra = resumenPers();
+  cesta.push({pid:actual.id, nom:actual.nom, art:actual.art, img:actual.img||'',
+              cant:r.label, especs: extra ? especs + ' · ' + extra : especs,
+              archivo, precio:r.total,
+              pers: per ? {tipo:per.tipo, color:per.color.nom, tallas:clone(per.tallas),
+                           zonas:Object.values(per.zonas).map(z=>({nom:z.nom, arte:z.nombre, tam:z.tam}))} : null});
   saveCesta(); pintarCesta(); cerrarTodo();
   toast(`${actual.nom} · ${r.label} en la cesta`);
 };
+
+
+/* ============================================================
+   PERSONALIZADOR DE PRENDAS
+   Elegir color, ver delante y detrás, colocar el arte en cada
+   zona de marcaje y repartir las tallas. Lo que aquí se decide
+   viaja con el pedido para que en el taller no haya que llamar.
+   ============================================================ */
+const PRENDAS = {
+  camiseta:{
+    nom:'Camiseta',
+    frente:`<path class="tela" d="M110 26 C120 48 180 48 190 26 L246 46 L272 100 L230 118 L222 100 L222 306 Q150 318 78 306 L78 100 L70 118 L28 100 L54 46 Z"/>
+            <path class="borde" d="M110 26 C120 48 180 48 190 26" />`,
+    espalda:`<path class="tela" d="M110 26 C126 40 174 40 190 26 L246 46 L272 100 L230 118 L222 100 L222 306 Q150 318 78 306 L78 100 L70 118 L28 100 L54 46 Z"/>
+             <path class="borde" d="M108 30 C126 44 174 44 192 30"/>`
+  },
+  polo:{
+    nom:'Polo',
+    frente:`<path class="tela" d="M112 26 C122 46 178 46 188 26 L246 46 L272 100 L230 118 L222 100 L222 306 Q150 318 78 306 L78 100 L70 118 L28 100 L54 46 Z"/>
+            <path class="borde" d="M124 28 L150 74 L176 28"/><path class="borde" d="M150 74 L150 132"/>
+            <circle class="borde" cx="150" cy="92" r="3"/><circle class="borde" cx="150" cy="116" r="3"/>`,
+    espalda:`<path class="tela" d="M112 26 C126 40 174 40 188 26 L246 46 L272 100 L230 118 L222 100 L222 306 Q150 318 78 306 L78 100 L70 118 L28 100 L54 46 Z"/>
+             <path class="borde" d="M110 30 C126 44 174 44 190 30"/>`
+  },
+  sudadera:{
+    nom:'Sudadera',
+    frente:`<path class="tela" d="M108 34 C120 58 180 58 192 34 L252 54 L280 112 L236 130 L228 112 L228 312 Q150 324 72 312 L72 112 L64 130 L20 112 L48 54 Z"/>
+            <path class="borde" d="M108 34 C122 66 178 66 192 34"/>
+            <path class="borde" d="M104 214 h92 v42 h-92 z"/>
+            <path class="borde" d="M138 58 L138 96 M162 58 L162 96"/>`,
+    espalda:`<path class="tela" d="M108 34 C124 48 176 48 192 34 L252 54 L280 112 L236 130 L228 112 L228 312 Q150 324 72 312 L72 112 L64 130 L20 112 L48 54 Z"/>
+             <path class="borde" d="M106 38 C124 54 176 54 194 38"/>`
+  },
+  gorra:{
+    nom:'Gorra',
+    frente:`<path class="tela" d="M60 190 A90 92 0 0 1 240 190 Z"/>
+            <path class="borde" d="M150 98 L150 190 M104 112 A70 90 0 0 0 82 186 M196 112 A70 90 0 0 1 218 186"/>
+            <path class="tela" d="M58 190 h184 c34 0 50 22 50 34 H58 Z"/>`,
+    espalda:`<path class="tela" d="M60 190 A90 92 0 0 1 240 190 Z"/>
+             <path class="borde" d="M126 190 v-70 h48 v70"/>`
+  },
+  bolsa:{
+    nom:'Bolsa de tela',
+    frente:`<path class="tela" d="M72 96 h156 l-10 216 H82 Z"/>
+            <path class="borde" d="M108 96 V70 a42 42 0 0 1 84 0 v26"/>`,
+    espalda:`<path class="tela" d="M72 96 h156 l-10 216 H82 Z"/>
+             <path class="borde" d="M108 96 V70 a42 42 0 0 1 84 0 v26"/>`
+  }
+};
+
+/* Zonas de marcaje. recargo = € por unidad; la primera zona va incluida. */
+const ZONAS = {
+  camiseta:[
+    {id:'pizq', nom:'Pecho izquierdo', vista:'frente',  x:168, y:96,  w:56, h:56, recargo:0.90},
+    {id:'pcen', nom:'Pecho centrado',  vista:'frente',  x:104, y:104, w:92, h:86, recargo:1.20},
+    {id:'esp',  nom:'Espalda completa',vista:'espalda', x:88,  y:96,  w:124,h:150,recargo:1.80},
+    {id:'nuca', nom:'Nuca',            vista:'espalda', x:118, y:58,  w:64, h:28, recargo:0.80},
+    {id:'mizq', nom:'Manga izquierda', vista:'frente',  x:34,  y:62,  w:40, h:36, recargo:0.70},
+    {id:'mder', nom:'Manga derecha',   vista:'frente',  x:226, y:62,  w:40, h:36, recargo:0.70}
+  ],
+  gorra:[
+    {id:'fro', nom:'Frontal',  vista:'frente',  x:106, y:120, w:88, h:56, recargo:0},
+    {id:'lat', nom:'Lateral',  vista:'frente',  x:66,  y:150, w:38, h:30, recargo:0.60},
+    {id:'tra', nom:'Trasera',  vista:'espalda', x:118, y:132, w:64, h:44, recargo:0.60}
+  ],
+  bolsa:[
+    {id:'fro', nom:'Cara delantera', vista:'frente',  x:92, y:140, w:116, h:116, recargo:0},
+    {id:'tra', nom:'Cara trasera',   vista:'espalda', x:92, y:140, w:116, h:116, recargo:1.10}
+  ]
+};
+ZONAS.polo = ZONAS.camiseta;
+ZONAS.sudadera = [
+  {id:'pizq', nom:'Pecho izquierdo', vista:'frente',  x:168, y:104, w:54, h:54, recargo:0.90},
+  {id:'pcen', nom:'Pecho centrado',  vista:'frente',  x:106, y:112, w:88, h:82, recargo:1.30},
+  {id:'esp',  nom:'Espalda completa',vista:'espalda', x:88,  y:106, w:124,h:150,recargo:1.90},
+  {id:'nuca', nom:'Nuca',            vista:'espalda', x:118, y:66,  w:64, h:28, recargo:0.80},
+  {id:'mizq', nom:'Manga izquierda', vista:'frente',  x:28,  y:74,  w:40, h:36, recargo:0.70},
+  {id:'mder', nom:'Manga derecha',   vista:'frente',  x:232, y:74,  w:40, h:36, recargo:0.70}
+];
+
+const COLORES = [
+  {nom:'Blanco',   hex:'#FFFFFF'}, {nom:'Negro',    hex:'#1A1614'},
+  {nom:'Marino',   hex:'#1F3260'}, {nom:'Rojo',     hex:'#C4232B'},
+  {nom:'Verde',    hex:'#2E6B47'}, {nom:'Gris vigoré', hex:'#B9B4AE'},
+  {nom:'Amarillo', hex:'#F2C500'}, {nom:'Azul cielo',  hex:'#68A9DA'}
+];
+const TALLAS = ['S','M','L','XL','2XL'];
+
+const persDe = p => p.pers !== undefined ? p.pers
+  : ({camiseta:'camiseta', sudadera:'sudadera', gorra:'gorra', bolsa:'bolsa'}[p.art] || '');
+
+/* estado del personalizador para el producto abierto */
+let per = null;
+
+function iniciarPers(tipo){
+  per = {tipo, color:COLORES[0], vista:'frente', zonas:{}, tallas:{}};
+  TALLAS.forEach(t=> per.tallas[t]=0);
+}
+function recargoPers(){
+  if(!per) return 0;
+  const puestas = Object.values(per.zonas);
+  if(puestas.length < 2) return 0;                 // la primera va incluida
+  const recargos = puestas.map(z=>z.recargo).sort((a,b)=>a-b);
+  recargos.shift();                                 // se perdona la más barata
+  return recargos.reduce((s,v)=>s+v,0);
+}
+
+function svgPrenda(){
+  const P = PRENDAS[per.tipo], zs = (ZONAS[per.tipo]||[]).filter(z=>z.vista===per.vista);
+  const claro = per.color.hex === '#FFFFFF' || per.color.hex === '#B9B4AE' || per.color.hex === '#F2C500';
+  const linea = claro ? '#1A1614' : 'rgba(255,255,255,.55)';
+  return `<svg class="prenda" viewBox="0 0 300 340" xmlns="http://www.w3.org/2000/svg">
+    <style>
+      .tela{fill:${per.color.hex};stroke:#1A1614;stroke-width:3;stroke-linejoin:round}
+      .borde{fill:none;stroke:${linea};stroke-width:2.4;stroke-linecap:round}
+    </style>
+    ${P[per.vista]}
+    ${zs.map(z=>{
+      const a = per.zonas[z.id];
+      if(a){
+        const k = a.tam/100;
+        const w = z.w*k, hh = z.h*k;
+        return `<image href="${esc(a.img)}" x="${z.x + (z.w-w)/2}" y="${z.y + (z.h-hh)/2}"
+                  width="${w}" height="${hh}" preserveAspectRatio="xMidYMid meet"/>`;
+      }
+      return `<rect x="${z.x}" y="${z.y}" width="${z.w}" height="${z.h}" rx="6"
+               fill="none" stroke="${linea}" stroke-width="2" stroke-dasharray="6 5" opacity=".8"/>`;
+    }).join('')}
+  </svg>`;
+}
+
+function pintarPers(){
+  const c = $('#pers'); if(!c || !per) return;
+  const zs = ZONAS[per.tipo] || [];
+  const puestas = Object.keys(per.zonas).length;
+  const sumaTallas = TALLAS.reduce((s,t)=>s+(+per.tallas[t]||0),0);
+  const cant = actual.tiers[selTier][0];
+
+  c.innerHTML = `
+    <div class="lienzo">
+      <div class="vistas">
+        <button type="button" data-vista="frente"  aria-pressed="${per.vista==='frente'}">Delante</button>
+        <button type="button" data-vista="espalda" aria-pressed="${per.vista==='espalda'}">Detrás</button>
+      </div>
+      ${svgPrenda()}
+    </div>
+    <div class="cuerpo">
+      <label class="head" style="display:block;font-size:13px;font-weight:700;margin-bottom:9px">Color de la prenda <em style="font-style:normal;font-weight:500;color:var(--muted)">${esc(per.color.nom)}</em></label>
+      <div class="colores">${COLORES.map((k,i)=>`
+        <button type="button" data-color="${i}" title="${esc(k.nom)}" aria-label="${esc(k.nom)}"
+          aria-pressed="${per.color.hex===k.hex}" style="background:${k.hex}"></button>`).join('')}</div>
+
+      <label class="head" style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin:16px 0 9px">
+        <span>Dónde va impreso</span>
+        <em style="font-style:normal;font-weight:500;color:var(--muted)">${puestas?`${puestas} zona${puestas>1?'s':''}`:'ninguna todavía'}</em></label>
+      ${zs.map(z=>{
+        const a = per.zonas[z.id];
+        return `<div class="zona ${a?'puesta':''}">
+          <div class="mini">${a?`<img src="${esc(a.img)}" alt="">`:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>`}</div>
+          <div class="txt"><b>${z.nom}</b>
+            <span>${a ? `${esc(a.nombre)} · tamaño ${a.tam} %` : (z.recargo ? `+${eur(z.recargo)} por unidad` : 'incluida en el precio')}</span>
+            ${a?`<input type="range" class="slider" min="35" max="100" value="${a.tam}" data-tam="${z.id}" style="margin-top:7px">`:''}
+          </div>
+          <div class="acc">
+            <label class="ibtn" style="cursor:pointer">${a?'Cambiar':'Subir arte'}<input type="file" accept="image/*" data-zona="${z.id}"></label>
+            ${a?`<button type="button" class="xbtn" data-quita="${z.id}">✕</button>`:''}
+          </div>
+        </div>`;
+      }).join('')}
+
+      <label class="head" style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin:18px 0 9px">
+        <span>Reparto de tallas</span>
+        <em style="font-style:normal;font-weight:500;color:var(--muted)">para ${num(cant)} unidades</em></label>
+      <div class="tallas">${TALLAS.map(t=>`
+        <div><label>${t}</label><input type="number" min="0" value="${per.tallas[t]||0}" data-talla="${t}"></div>`).join('')}</div>
+      <div class="cuadre ${sumaTallas===cant?'bien':'mal'}">
+        ${sumaTallas===cant ? '✓ Las tallas cuadran con la tirada'
+          : sumaTallas===0  ? 'Puedes dejarlo en blanco y lo cerramos por teléfono'
+          : `Llevas ${num(sumaTallas)} de ${num(cant)} unidades repartidas`}
+      </div>
+    </div>`;
+
+  c.querySelectorAll('[data-vista]').forEach(b=> b.onclick=()=>{ per.vista=b.dataset.vista; pintarPers(); });
+  c.querySelectorAll('[data-color]').forEach(b=> b.onclick=()=>{ per.color=COLORES[+b.dataset.color]; pintarPers(); });
+  c.querySelectorAll('[data-zona]').forEach(inp=> inp.onchange=e=>{
+    const f=e.target.files[0]; if(!f) return;
+    const z=(ZONAS[per.tipo]||[]).find(x=>x.id===e.target.dataset.zona);
+    reducirFoto(f, 620, 0.82, d=>{
+      per.zonas[z.id] = {img:d, nombre:f.name, tam:80, recargo:z.recargo, nom:z.nom};
+      pintarPers(); pintarPrecio();
+    });
+  });
+  c.querySelectorAll('[data-quita]').forEach(b=> b.onclick=()=>{
+    delete per.zonas[b.dataset.quita]; pintarPers(); pintarPrecio();
+  });
+  c.querySelectorAll('[data-tam]').forEach(s=> s.oninput=e=>{
+    per.zonas[e.target.dataset.tam].tam = +e.target.value;
+    const svg=c.querySelector('svg.prenda');
+    if(svg) svg.outerHTML = svgPrenda();   // solo repinta el dibujo, no toda la ficha
+  });
+  c.querySelectorAll('[data-talla]').forEach(inp=> inp.onchange=e=>{
+    per.tallas[e.target.dataset.talla] = Math.max(0, +e.target.value||0);
+    pintarPers();
+  });
+}
+
+function resumenPers(){
+  if(!per) return '';
+  const zs = Object.values(per.zonas);
+  const tallas = TALLAS.filter(t=>per.tallas[t]>0).map(t=>`${t}×${per.tallas[t]}`).join(' ');
+  return [
+    per.color.nom,
+    zs.length ? zs.map(z=>z.nom).join(' + ') : 'sin marcaje definido',
+    tallas || ''
+  ].filter(Boolean).join(' · ');
+}
 
 /* ============================================================
    7. CESTA Y PEDIDO
@@ -1866,7 +2261,9 @@ function verPedido(id){
     </div>
     ${o.notas?`<div class="note" style="background:#F4F6F8;border-color:var(--line);color:var(--ink-70)"><b>Notas del cliente</b>${esc(o.notas)}</div>`:''}
     <table class="adm" style="border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:14px">
-      <tbody>${o.lineas.map(l=>`<tr><td><b>${esc(l.nom)}</b><br><span class="mono" style="font-size:11.5px;color:var(--muted)">${esc(l.cant)} · ${esc(l.especs)}${l.archivo?'<br>Arte: '+esc(l.archivo):''}</span></td>
+      <tbody>${o.lineas.map(l=>`<tr><td><b>${esc(l.nom)}</b><br><span class="mono" style="font-size:11.5px;color:var(--muted)">${esc(l.cant)} · ${esc(l.especs)}${l.archivo?'<br>Arte: '+esc(l.archivo):''}${
+        l.pers ? '<br>PRENDA: '+esc(l.pers.color)+' · '+l.pers.zonas.map(z=>esc(z.nom)+' ('+esc(z.arte)+', '+z.tam+' %)').join(' · ')
+                 + '<br>TALLAS: '+(Object.entries(l.pers.tallas).filter(([,v])=>v>0).map(([t,v])=>t+'×'+v).join(' ')||'sin repartir') : ''}</span></td>
       <td style="text-align:right;font-weight:600;white-space:nowrap">${eur(l.precio)}</td></tr>`).join('')}</tbody>
     </table>
     <div class="sumrow"><span>Base</span><span>${eur(o.base)}</span></div>
@@ -2089,6 +2486,13 @@ function editarProducto(id){
       <div class="field"><label>Categoría</label><select id="e-cat">${DB.cats.map(c=>`<option value="${c.id}" ${p.cat===c.id?'selected':''}>${esc(c.nom)}</option>`).join('')}</select></div>
       <div class="field"><label>Ilustración</label><select id="e-art">${ART_KEYS.map(k=>`<option ${p.art===k?'selected':''}>${k}</option>`).join('')}</select></div>
     </div>
+    <div class="field"><label>Personalización en la web</label>
+      <select id="e-pers">
+        <option value="" ${!persDe(p)?'selected':''}>Sin personalizador</option>
+        ${Object.keys(PRENDAS).map(k=>`<option value="${k}" ${persDe(p)===k?'selected':''}>${PRENDAS[k].nom}</option>`).join('')}
+      </select>
+      <div class="hint">El cliente elige color, sube el arte de cada zona y reparte las tallas. Las zonas extra suman recargo por unidad.</div>
+    </div>
     <div id="e-prev" style="border:1px solid var(--line);border-radius:8px;padding:10px;width:90px;margin-bottom:14px">${ART[p.art]}</div>
     <div class="field"><label>Foto del producto</label>
       <div class="fotobox" id="e-fotobox"></div>
@@ -2163,6 +2567,7 @@ function editarProducto(id){
     p.nom=$('#e-nom').value.trim(); p.cat=$('#e-cat').value; p.art=$('#e-art').value;
     p.tech=$('#e-tech').value.trim(); p.badge=$('#e-badge').value.trim();
     p.desc=$('#e-desc').value.trim(); p.on=$('#e-on').checked;
+    p.pers=$('#e-pers').value;
     const u=$('#e-fotourl').value.trim();
     if(u) p.img=u;
     if(!p.nom){ toast('Ponle un nombre al producto'); return; }
