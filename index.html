@@ -1471,6 +1471,55 @@ function cerrarTodo(){
   document.body.style.overflow = enAdmin() ? 'hidden' : '';
 }
 function enlazarCierres(){ $$('[data-close]').forEach(b=> b.onclick=cerrarTodo); }
+/* Ventana de confirmación propia. No usamos confirm() del navegador porque
+   queda bloqueado cuando la web se abre dentro de un marco (vistas previas,
+   webs incrustadas) y el botón parece que no responde. */
+function confirmar(titulo, texto, etiqueta, alAceptar){
+  dlg(titulo, `<p style="font-size:15px;line-height:1.6">${texto}</p>`,
+    `<button class="btn ghost sm" data-close>Cancelar</button>
+     <button class="btn danger" id="cf-ok">${esc(etiqueta)}</button>`);
+  $('#dlg-foot').style.justifyContent='space-between';
+  enlazarCierres();
+  $('#cf-ok').onclick=()=>{ cerrarTodo(); alAceptar(); };
+}
+
+/* Descarga de archivos, con salida alternativa si el navegador la bloquea
+   (pasa dentro de marcos: entonces enseñamos el contenido para copiarlo). */
+function descargar(nombre, contenido, tipo){
+  const enMarco = window.self !== window.top;
+  try{
+    const blob = new Blob([contenido], {type:tipo});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = nombre;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+    if(!enMarco){ toast('Archivo descargado'); return; }
+  }catch(e){}
+  if(enMarco){
+    dlg('Copia el contenido', `
+      <p style="font-size:14px;color:var(--muted);margin-bottom:12px">Estás viendo la web dentro de un marco y el navegador puede bloquear la descarga. Si no te ha aparecido <b>${esc(nombre)}</b> en Descargas, copia esto y pégalo en un archivo de texto.</p>
+      <textarea id="dl-txt" style="width:100%;min-height:220px;border:1.5px solid var(--line);border-radius:8px;padding:11px;font-family:var(--f-mono);font-size:11.5px">${esc(contenido)}</textarea>`,
+      `<button class="btn ghost sm" data-close>Cerrar</button><button class="btn pink" id="dl-copy">Copiar todo</button>`);
+    $('#dlg-foot').style.justifyContent='space-between';
+    enlazarCierres();
+    $('#dl-copy').onclick=async()=>{
+      const t=$('#dl-txt'); t.select();
+      try{ await navigator.clipboard.writeText(t.value); toast('Copiado'); }
+      catch(e){ try{ document.execCommand('copy'); toast('Copiado'); }catch(e2){ toast('Selecciónalo y copia con Ctrl+C'); } }
+    };
+  }
+}
+
+/* sessionStorage puede estar capado por la configuración de cookies */
+const ses = {
+  get(k){ try{ return sessionStorage.getItem(k); }catch(e){ return null; } },
+  set(k,v){ try{ sessionStorage.setItem(k,v); }catch(e){} },
+  del(k){ try{ sessionStorage.removeItem(k); }catch(e){} }
+};
+
 function dlg(titulo, cuerpo, pie=''){
   $('#dlg-title').textContent=titulo;
   $('#dlg-body').innerHTML=cuerpo;
@@ -1512,7 +1561,7 @@ function entrar(){
   if($('#pin').value !== String(DB.settings.pin)){ toast('PIN incorrecto'); $('#pin').value=''; return; }
   $('#pin').value='';
   $('#login').classList.add('hidden');
-  sessionStorage.setItem('ni_admin','1');
+  ses.set('ni_admin','1');
   abrirAdmin();
 }
 function abrirAdmin(){
@@ -1524,8 +1573,8 @@ function abrirAdmin(){
   fbInit();
 }
 $('#adm-ver').onclick=()=>{ $('#admin').classList.add('hidden'); $('#tienda').style.display=''; document.body.style.overflow=''; renderTienda(); };
-$('#adm-out').onclick=()=>{ sessionStorage.removeItem('ni_admin'); $('#adm-ver').onclick(); toast('Sesión cerrada'); };
-if(sessionStorage.getItem('ni_admin')==='1') setTimeout(abrirAdmin,0);
+$('#adm-out').onclick=()=>{ ses.del('ni_admin'); $('#adm-ver').onclick(); toast('Sesión cerrada'); };
+if(ses.get('ni_admin')==='1') setTimeout(abrirAdmin,0);
 if(location.hash==='#admin') $('#login').classList.remove('hidden');
 
 const SECS=[
@@ -1646,8 +1695,11 @@ function verPedido(id){
   $('#dlg-foot').style.justifyContent='space-between';
   $('#o-save').onclick=()=>{ o.estado=$('#o-est').value; save(false); cerrarTodo(); admRender(); toast(`${o.id} · ${o.estado}`); };
   $('#o-del').onclick=()=>{
-    if(!confirm(`¿Eliminar el pedido ${o.id}? No se puede deshacer.`)) return;
-    DB.orders=DB.orders.filter(x=>x.id!==o.id); save(false); cerrarTodo(); admRender(); toast('Pedido eliminado');
+    confirmar('Eliminar pedido',
+      `Se va a borrar <b>${o.id}</b> de ${esc(o.cliente)}, por ${eur(o.base)}. Esto no se puede deshacer.`,
+      'Eliminar pedido', ()=>{
+        DB.orders=DB.orders.filter(x=>x.id!==o.id); save(false); admRender(); toast('Pedido eliminado');
+      });
   };
   $('#o-copy').onclick=async()=>{
     let t=`${o.id} · ${o.cliente} · ${o.tel}\n${o.entrega} · ${o.fecha}\n\n`;
@@ -1731,8 +1783,11 @@ function secProductos(){
   });
   B.querySelectorAll('[data-del]').forEach(b=> b.onclick=()=>{
     const p=DB.products.find(x=>x.id===b.dataset.del);
-    if(!confirm(`¿Borrar "${p.nom}"?`)) return;
-    DB.products=DB.products.filter(x=>x.id!==p.id); save(false); admRender(); toast('Producto borrado');
+    confirmar('Borrar producto',
+      `Se va a quitar <b>${esc(p.nom)}</b> del catálogo. Si solo quieres que deje de verse en la tienda, cancela y usa <b>Ocultar</b>.`,
+      'Borrar producto', ()=>{
+        DB.products=DB.products.filter(x=>x.id!==p.id); save(false); admRender(); toast('Producto borrado');
+      });
   });
 }
 function editarProducto(id){
@@ -1887,12 +1942,8 @@ function exportarTarifa(){
                 p.on===false?'no':'si', tramosATexto(p.tiers)].map(csvCampo).join(';'));
   });
   // el BOM hace que Excel abra bien los acentos
-  const blob = new Blob(['\ufeff' + filas.join('\r\n')], {type:'text/csv;charset=utf-8;'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `tarifa-${DB.settings.marca.toLowerCase().replace(/\s+/g,'-')}-${hoy()}.csv`;
-  a.click(); URL.revokeObjectURL(a.href);
-  toast(`Tarifa exportada · ${DB.products.length} productos`);
+  descargar(`tarifa-${DB.settings.marca.toLowerCase().replace(/\s+/g,'-')}-${hoy()}.csv`,
+            '\ufeff' + filas.join('\r\n'), 'text/csv;charset=utf-8;');
 }
 function leerCSV(txt){
   txt = txt.replace(/^\ufeff/, '');
@@ -2019,10 +2070,15 @@ function dialogoPrecios(){
   $('#ap-ok').onclick=()=>{
     const l = afectados();
     if(!l.length){ toast('No hay productos que ajustar'); return; }
-    if(!confirm(`Se van a cambiar los precios de ${l.length} productos. ¿Seguir?`)) return;
-    l.forEach(p => p.tiers = p.tiers.map(t => [t[0], nuevoPrecio(t[1]), t[2] || '']));
-    save(false); cerrarTodo(); admRender();
-    toast(`Precios ajustados en ${l.length} productos`);
+    const pct = +$('#ap-pct').value || 0;
+    const nuevos = l.map(p => p.tiers.map(t => [t[0], nuevoPrecio(t[1]), t[2] || '']));
+    confirmar('Ajustar precios',
+      `Se van a ${pct<0?'bajar':'subir'} un <b>${Math.abs(pct)} %</b> los precios de <b>${l.length} producto${l.length>1?'s':''}</b>. Conviene exportar antes la tarifa, por si acaso.`,
+      'Aplicar a la tarifa', ()=>{
+        l.forEach((p,i)=> p.tiers = nuevos[i]);
+        save(false); admRender();
+        toast(`Precios ajustados en ${l.length} productos`);
+      });
   };
 }
 
@@ -2052,8 +2108,11 @@ function secCats(){
     const c=DB.cats.find(x=>x.id===b.dataset.cdl);
     const n=DB.products.filter(p=>p.cat===c.id).length;
     if(n){ toast(`Mueve antes los ${n} productos de esta categoría`); return; }
-    if(!confirm(`¿Borrar la categoría "${c.nom}"?`)) return;
-    DB.cats=DB.cats.filter(x=>x.id!==c.id); delete DB.opts[c.id]; save(false); admRender();
+    confirmar('Borrar categoría',
+      `Se va a borrar <b>${esc(c.nom)}</b> y las opciones de precio que tenga configuradas.`,
+      'Borrar categoría', ()=>{
+        DB.cats=DB.cats.filter(x=>x.id!==c.id); delete DB.opts[c.id]; save(false); admRender();
+      });
   });
 }
 function editarCat(id){
@@ -2251,13 +2310,8 @@ function secAjustes(){
     DB.settings.fb = v; save(false); await fbInit(); toast('Configuración guardada');
   };
   $('#fb-off').onclick=()=>{ DB.settings.fb=null; fb.listo=false; save(false); syncEstado(false,'Solo este dispositivo'); secAjustes(); toast('Sincronización desactivada'); };
-  $('#exp').onclick=()=>{
-    const blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
-    const a=document.createElement('a');
-    a.href=URL.createObjectURL(blob);
-    a.download=`nuevoimpacto-${hoy()}.json`;
-    a.click(); URL.revokeObjectURL(a.href);
-  };
+  $('#exp').onclick=()=>descargar(`nuevoimpacto-${hoy()}.json`,
+                                  JSON.stringify(DB,null,2), 'application/json');
   $('#imp').onclick=()=>$('#impf').click();
   $('#impf').onchange=e=>{
     const f=e.target.files[0]; if(!f) return;
@@ -2272,8 +2326,11 @@ function secAjustes(){
     r.readAsText(f);
   };
   $('#reset').onclick=()=>{
-    if(!confirm('Se borrarán tus cambios y volverán los datos de ejemplo. ¿Seguro?')) return;
-    DB=clone(DEMO); save(); admRender(); toast('Datos de ejemplo restaurados');
+    confirmar('Restaurar datos de ejemplo',
+      'Se pierden el catálogo, los precios, los textos y los pedidos que tengas guardados, y vuelve todo como venía de fábrica.',
+      'Restaurar todo', ()=>{
+        DB=clone(DEMO); save(); admRender(); toast('Datos de ejemplo restaurados');
+      });
   };
 }
 
