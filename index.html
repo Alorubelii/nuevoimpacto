@@ -309,7 +309,8 @@ nav.cats a.main:hover{color:var(--ink);border-bottom-color:var(--line)}
 .modal.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
 .modal.narrow{width:min(560px,calc(100vw - 32px))}
 .modal-head{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line)}
-.modal-body{overflow-y:auto}
+.modal-body{overflow-y:auto;flex:1 1 auto;min-height:0}
+.modal-head,.pricebox{flex:0 0 auto}
 #modal .modal-body{display:grid;grid-template-columns:.85fr 1.15fr}
 .mb-left{padding:24px;border-right:1px solid var(--line);background:var(--smoke)}
 .mb-left .art{background:#fff;border:1px solid var(--line);border-radius:var(--r);aspect-ratio:1;display:grid;place-items:center;padding:26px}
@@ -356,7 +357,7 @@ nav.cats a.main:hover{color:var(--ink);border-bottom-color:var(--line)}
 .drawer-foot{border-top:1px solid var(--line);padding:18px 20px;background:#fff}
 .sumrow{display:flex;justify-content:space-between;font-size:14px;margin-bottom:7px;color:var(--ink-70)}
 .sumrow.total{font-family:var(--f-display);font-size:20px;font-weight:800;color:var(--ink);border-top:1px solid var(--line);padding-top:11px;margin-top:11px;letter-spacing:-.02em}
-.toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,90px);background:var(--ink);color:#fff;padding:13px 20px;border-radius:99px;font-size:14px;font-weight:500;z-index:260;opacity:0;transition:.25s;display:flex;align-items:center;gap:10px;max-width:90vw}
+.toast{pointer-events:none;position:fixed;left:50%;bottom:26px;transform:translate(-50%,90px);background:var(--ink);color:#fff;padding:13px 20px;border-radius:99px;font-size:14px;font-weight:500;z-index:260;opacity:0;transition:.25s;display:flex;align-items:center;gap:10px;max-width:90vw}
 .toast.on{transform:translate(-50%,0);opacity:1}
 .toast .dotok{width:8px;height:8px;border-radius:50%;background:var(--yellow);flex:0 0 8px}
 
@@ -434,6 +435,12 @@ table.adm tr:hover td{background:#FCFCFD}
 .login input{width:100%;text-align:center;font-family:var(--f-mono);font-size:22px;letter-spacing:.4em;border:1.5px solid var(--line);border-radius:10px;padding:14px;margin:18px 0 12px;outline:0}
 .login input:focus{border-color:var(--ink)}
 @media print{.no-print{display:none!important}}
+
+/* aviso de error: si algo peta en el navegador, que se vea */
+#fallo{position:fixed;left:0;right:0;top:0;z-index:300;background:var(--red);color:#fff;padding:12px 16px;font-size:13.5px;display:none;align-items:center;gap:14px}
+#fallo.on{display:flex}
+#fallo .txt{flex:1;font-family:var(--f-mono);font-size:12px;line-height:1.5;word-break:break-word}
+#fallo button{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:7px;padding:6px 11px;font-size:12.5px;font-weight:600}
 </style>
 </head>
 <body>
@@ -721,6 +728,12 @@ table.adm tr:hover td{background:#FCFCFD}
   <g transform="translate(417.8 -140.0) rotate(-6)"><path d="M31.97 -50.59Q41.57 -50.59 47.95 -43.25Q54.34 -35.90 54.34 -25.34V-8.45Q54.34 -6.24 54.19 -5.14Q54.05 -4.03 53.38 -2.69Q52.03 -0.10 45.89 -0.10Q39.07 -0.10 38.02 -3.65Q37.44 -5.28 37.44 -8.54V-25.44Q37.44 -29.38 35.18 -31.58Q32.93 -33.79 29.14 -33.79Q25.34 -33.79 22.99 -31.49Q20.64 -29.18 20.64 -25.44V-8.45Q20.64 -6.24 20.50 -5.14Q20.35 -4.03 19.58 -2.69Q18.34 -0.10 12.19 -0.10Q6.14 -0.10 4.80 -2.69Q4.13 -4.13 3.98 -5.23Q3.84 -6.34 3.84 -8.54V-42.53Q3.84 -44.64 3.98 -45.74Q4.13 -46.85 4.90 -48.19Q6.24 -50.59 12.29 -50.59Q18.14 -50.59 19.49 -48.38Q20.45 -46.75 20.45 -44.45Q20.83 -45.12 22.18 -46.37Q23.52 -47.62 24.77 -48.38Q28.03 -50.59 31.97 -50.59Z M82.48 -0.19Q72.78 -0.19 66.40 -7.54Q60.02 -14.88 60.02 -25.44V-42.24Q60.02 -44.54 60.16 -45.60Q60.30 -46.66 60.98 -48.10Q62.32 -50.69 68.46 -50.69Q75.18 -50.69 76.34 -47.04Q76.91 -45.50 76.91 -42.14V-25.34Q76.91 -21.41 79.17 -19.20Q81.42 -16.99 85.22 -16.99Q89.01 -16.99 91.36 -19.30Q93.71 -21.60 93.71 -25.34V-42.34Q93.71 -44.54 93.86 -45.65Q94.00 -46.75 94.77 -48.19Q96.02 -50.69 102.16 -50.69Q108.21 -50.69 109.55 -48.10Q110.22 -46.66 110.37 -45.55Q110.51 -44.45 110.51 -42.24V-8.26Q110.51 -6.14 110.37 -5.04Q110.22 -3.94 109.46 -2.59Q108.02 -0.10 102.06 -0.10Q96.21 -0.10 94.86 -2.40Q93.90 -4.03 93.90 -6.34Q93.52 -5.66 92.18 -4.42Q90.83 -3.17 89.58 -2.30Q86.32 -0.19 82.48 -0.19Z M155.55 -19.78H132.80Q132.80 -17.09 135.97 -15.26Q139.14 -13.44 142.30 -13.44Q147.87 -13.44 151.04 -14.59L152.10 -14.98Q154.40 -16.03 155.94 -16.03Q159.01 -16.03 161.22 -11.71Q162.46 -9.12 162.46 -7.30Q162.46 1.25 142.02 1.25Q134.91 1.25 129.39 -1.20Q123.87 -3.65 120.80 -7.68Q114.75 -15.46 114.75 -25.06Q114.75 -37.15 122.58 -44.40Q130.40 -51.65 142.11 -51.65Q155.46 -51.65 161.70 -42.24Q164.96 -37.25 164.96 -31.34Q164.96 -25.44 162.03 -22.61Q159.10 -19.78 155.55 -19.78Z M220.18 -49.44Q225.17 -46.46 225.17 -43.10Q225.17 -41.18 223.25 -37.82L203.38 -3.74Q202.42 -2.11 200.30 -0.82Q198.19 0.48 196.13 0.48Q194.06 0.48 192.19 -0.53Q190.32 -1.54 189.55 -2.59L188.69 -3.65L168.72 -37.82Q166.80 -40.99 166.80 -43.01Q166.80 -46.46 171.79 -49.44Q175.44 -51.55 177.55 -51.55Q179.66 -51.55 180.86 -50.26Q182.06 -48.96 183.41 -46.37L195.98 -22.18L208.56 -46.37Q209.62 -48.19 210.14 -49.01Q210.67 -49.82 211.82 -50.64Q212.98 -51.46 214.90 -51.46Q216.82 -51.46 220.18 -49.44Z M279.81 -25.34Q279.81 -17.38 275.68 -11.18Q271.55 -4.99 265.65 -2.06Q259.74 0.86 253.41 0.86Q247.07 0.86 241.12 -2.26Q235.17 -5.38 231.09 -11.47Q227.01 -17.57 227.01 -25.25Q227.01 -36.77 235.07 -44.26Q243.14 -51.74 253.50 -51.74Q263.87 -51.74 271.84 -44.30Q279.81 -36.86 279.81 -25.34Z" class="lg-red"/><path d="M253.41,-44.45L257.88,-31.59L271.49,-31.31L260.64,-23.09L264.58,-10.06L253.41,-17.84L242.24,-10.06L246.18,-23.09L235.33,-31.31L248.94,-31.59Z" class="lg-halon"/></g>
 </svg></template>
 
+<div id="fallo" role="alert">
+  <div class="txt" id="fallo-txt"></div>
+  <button id="fallo-copy">Copiar</button>
+  <button id="fallo-x">Cerrar</button>
+</div>
+
 <div class="toast" id="toast"><span class="dotok"></span><span id="toast-txt"></span></div>
 
 <!-- ===================== LOGIN ADMIN ===================== -->
@@ -758,7 +771,35 @@ table.adm tr:hover td{background:#FCFCFD}
 
 <script>
 /* ============================================================
-   0. UTILIDADES
+   0. AVISO DE ERRORES
+   Si algo falla en el navegador se ve en pantalla, sin tener que
+   abrir la consola. Así se puede copiar y mandar tal cual.
+   ============================================================ */
+function avisarFallo(msg){
+  const b = document.getElementById('fallo');
+  const t = document.getElementById('fallo-txt');
+  if(!b || !t) return;
+  t.textContent = msg;
+  b.classList.add('on');
+}
+window.addEventListener('error', e=>{
+  avisarFallo(`${e.message} — ${String(e.filename||'').split('/').pop()}:${e.lineno}`);
+});
+window.addEventListener('unhandledrejection', e=>{
+  avisarFallo('Promesa rechazada: ' + (e.reason && e.reason.message ? e.reason.message : e.reason));
+});
+document.addEventListener('DOMContentLoaded', ()=>{
+  const x=document.getElementById('fallo-x');
+  const c=document.getElementById('fallo-copy');
+  if(x) x.onclick=()=>document.getElementById('fallo').classList.remove('on');
+  if(c) c.onclick=async()=>{
+    try{ await navigator.clipboard.writeText(document.getElementById('fallo-txt').textContent); c.textContent='Copiado'; }
+    catch(err){ c.textContent='Selecciona y copia'; }
+  };
+});
+
+/* ============================================================
+   0b. UTILIDADES
    ============================================================ */
 const $  = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -1608,9 +1649,44 @@ function admRender(){
     b.onclick=()=>{ seccion=s.id; admRender(); };
     nav.appendChild(b);
   });
-  ({panel:secPanel, pedidos:secPedidos, consultas:secConsultas, productos:secProductos,
-    cats:secCats, opciones:secOpciones, contenido:secContenido, ajustes:secAjustes}[seccion] || secPanel)();
+  const pinta = {panel:secPanel, pedidos:secPedidos, consultas:secConsultas, productos:secProductos,
+    cats:secCats, opciones:secOpciones, contenido:secContenido, ajustes:secAjustes}[seccion] || secPanel;
+  try{ pinta(); }
+  catch(err){ avisarFallo('Al pintar "'+seccion+'": '+err.message); }
 }
+
+/* Respaldo por delegación: aunque falle el enganche directo de un botón
+   (por ejemplo si un render se corta a medias), la fila sigue respondiendo. */
+document.getElementById('adm-body').addEventListener('click', e=>{
+  const t = e.target.closest('[data-ver],[data-ed],[data-tog],[data-dup],[data-del],[data-ced],[data-cdl],[data-leer],[data-cdel]');
+  if(!t || typeof t.onclick === 'function') return;   // ya tiene su manejador
+  const d = t.dataset;
+  try{
+    if(d.ver !== undefined)  return verPedido(d.ver);
+    if(d.ed !== undefined)   return editarProducto(d.ed);
+    if(d.ced !== undefined)  return editarCat(d.ced);
+    if(d.tog !== undefined){
+      const p=DB.products.find(x=>x.id===d.tog); p.on = p.on===false; save(false); return admRender();
+    }
+    if(d.dup !== undefined){
+      const p=clone(DB.products.find(x=>x.id===d.dup));
+      p.id=uid(); p.nom=p.nom+' (copia)'; DB.products.push(p); save(false); admRender();
+      return toast('Producto duplicado');
+    }
+    if(d.del !== undefined){
+      const p=DB.products.find(x=>x.id===d.del);
+      return confirmar('Borrar producto', `Se va a quitar <b>${esc(p.nom)}</b> del catálogo.`, 'Borrar producto', ()=>{
+        DB.products=DB.products.filter(x=>x.id!==p.id); save(false); admRender(); toast('Producto borrado');
+      });
+    }
+    if(d.leer !== undefined){
+      const c=DB.consultas.find(x=>x.id===d.leer); c.leida=!c.leida; save(false); return admRender();
+    }
+    if(d.cdel !== undefined){
+      DB.consultas=DB.consultas.filter(x=>x.id!==d.cdel); save(false); return admRender();
+    }
+  }catch(err){ avisarFallo('Al pulsar el botón: '+err.message); }
+});
 function head(t, s, extra=''){
   return `<div class="adm-head"><div><h2>${t}</h2><p>${s}</p></div><div style="display:flex;gap:8px">${extra}</div></div>`;
 }
@@ -2357,10 +2433,15 @@ function enlazarCampos(){
    10. ARRANQUE
    ============================================================ */
 // el logotipo va una sola vez en el documento y se clona donde haga falta
-const LOGO = $('#logo-tpl').innerHTML;
-['#t-logo','#f-logo','#l-logo','#a-logo'].forEach(s=>{ const el=$(s); if(el) el.innerHTML = LOGO; });
+try{
+  const tpl = $('#logo-tpl');
+  const LOGO = tpl ? tpl.innerHTML : '';
+  ['#t-logo','#f-logo','#l-logo','#a-logo'].forEach(s=>{ const el=$(s); if(el) el.innerHTML = LOGO; });
+}catch(err){ avisarFallo('Al poner el logotipo: '+err.message); }
 
-renderTienda();
+try{ renderTienda(); }
+catch(err){ avisarFallo('Al pintar la tienda: '+err.message); }
+
 enlazarCierres();
 </script>
 </body>
