@@ -85,12 +85,50 @@ header.site{position:sticky;top:0;z-index:60;background:var(--paper);border-bott
 .iconbtn{display:flex;align-items:center;gap:8px;border:1.5px solid var(--line);background:#fff;border-radius:var(--r);height:44px;padding:0 14px;font-size:14px;font-weight:600}
 .iconbtn:hover{border-color:var(--ink)}
 .iconbtn .count{background:var(--acc);color:#fff;font-family:var(--f-mono);font-size:11px;font-weight:600;min-width:19px;height:19px;border-radius:10px;display:grid;place-items:center;padding:0 5px}
-nav.cats{border-top:1px solid var(--line);background:#fff}
-nav.cats .wrap{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
-nav.cats .wrap::-webkit-scrollbar{display:none}
-nav.cats button{background:none;border:0;padding:13px 12px;font-size:14.5px;font-weight:500;white-space:nowrap;border-bottom:3px solid transparent;color:var(--ink-70)}
-nav.cats button:hover{color:var(--ink)}
-nav.cats button[aria-pressed="true"]{color:var(--ink);font-weight:600;border-bottom-color:var(--acc)}
+nav.cats{border-top:1px solid var(--line);background:#fff;position:relative}
+nav.cats .wrap{display:flex;align-items:center;gap:2px}
+.menubtn{display:flex;align-items:center;gap:9px;background:none;border:0;padding:13px 14px 13px 0;font-size:15px;font-weight:600;color:var(--ink);white-space:nowrap}
+.menubtn .caret{transition:transform .2s}
+.menubtn[aria-expanded="true"] .caret{transform:rotate(180deg)}
+.menubtn .act{font-weight:500;color:var(--acc)}
+.menubtn:hover{color:var(--acc)}
+nav.cats a.main{padding:13px 14px;font-size:14.5px;font-weight:500;color:var(--ink-70);white-space:nowrap;border-bottom:3px solid transparent}
+nav.cats a.main:hover{color:var(--ink);border-bottom-color:var(--line)}
+nav.cats .sep{flex:1}
+.burger{display:none;background:none;border:0;padding:12px 0 12px 12px;margin-left:auto}
+
+/* panel desplegable */
+.mega{display:none;position:absolute;left:0;right:0;top:100%;background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line);box-shadow:0 18px 40px rgba(14,17,22,.13);z-index:70}
+.mega.on{display:block}
+.mega .wrap{padding-top:20px;padding-bottom:20px}
+.megagrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.megaitem{display:flex;align-items:center;gap:12px;border:1.5px solid transparent;border-radius:var(--r);padding:11px 12px;background:none;text-align:left;width:100%}
+.megaitem:hover{border-color:var(--line);background:var(--smoke)}
+.megaitem[aria-pressed="true"]{border-color:var(--ink);background:#fff}
+.megaitem .ico{width:38px;height:38px;flex:0 0 38px;background:var(--smoke);border-radius:8px;display:grid;place-items:center;padding:5px}
+.megaitem[aria-pressed="true"] .ico{background:var(--smoke)}
+.megaitem b{display:block;font-size:14.5px;font-family:var(--f-display);letter-spacing:-.01em;line-height:1.2}
+.megaitem span{font-family:var(--f-mono);font-size:10.5px;color:var(--muted);letter-spacing:.06em}
+.mega .todo{grid-column:1/-1;border:1.5px dashed var(--line)}
+.mega .enlaces{display:none;margin-top:16px;padding-top:14px;border-top:1px solid var(--line);flex-direction:column;gap:2px}
+.mega .enlaces a{padding:11px 12px;font-size:15px;font-weight:500;border-radius:8px}
+.mega .enlaces a:hover{background:var(--smoke)}
+
+/* filtros dentro del catálogo: se reparten en varias líneas, nunca se cortan */
+.filtros{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px}
+.filtro{border:1.5px solid var(--line);background:#fff;border-radius:99px;padding:9px 16px;font-size:14px;font-weight:500;white-space:nowrap}
+.filtro:hover{border-color:var(--ink-70)}
+.filtro[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+.filtro .n{font-family:var(--f-mono);font-size:11px;opacity:.55;margin-left:6px}
+
+@media(max-width:1080px){.megagrid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:980px){
+  nav.cats a.main,nav.cats .sep{display:none}
+  .burger{display:block}
+  .mega .enlaces{display:flex}
+}
+@media(max-width:640px){.megagrid{grid-template-columns:1fr 1fr}}
+@media(max-width:420px){.megagrid{grid-template-columns:1fr}}
 @media(max-width:860px){.headmain{height:auto;padding:12px 0;flex-wrap:wrap;gap:12px}.searchbox{order:3;flex-basis:100%}html{scroll-padding-top:180px}}
 
 /* ---------------- hero ---------------- */
@@ -436,7 +474,26 @@ table.adm tr:hover td{background:#FCFCFD}
       </button>
     </div>
   </div>
-  <nav class="cats" aria-label="Categorías y secciones"><div class="wrap" id="catnav"></div></nav>
+  <nav class="cats" aria-label="Menú principal">
+    <div class="wrap">
+      <button class="menubtn" id="btn-menu" aria-expanded="false" aria-controls="mega">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        Catálogo<span class="act" id="menu-act"></span>
+        <svg class="caret" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 9l7 7 7-7"/></svg>
+      </button>
+      <span class="sep"></span>
+      <span id="mainlinks" style="display:flex"></span>
+      <button class="burger" id="btn-burger" aria-label="Abrir menú" aria-controls="mega">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
+    <div class="mega" id="mega">
+      <div class="wrap">
+        <div class="megagrid" id="megagrid"></div>
+        <div class="enlaces" id="megaenlaces"></div>
+      </div>
+    </div>
+  </nav>
   <div class="cmyk-bar"><i></i><i></i><i></i><i></i></div>
 </header>
 
@@ -508,6 +565,7 @@ table.adm tr:hover td{background:#FCFCFD}
       </div>
       <span class="mono" id="cat-count" style="font-size:12.5px;color:var(--muted)"></span>
     </div>
+    <div class="filtros" id="filtros"></div>
     <div class="prod-grid" id="grid"></div>
   </div>
 </section>
@@ -1113,29 +1171,78 @@ function pintarDestacados(){
 }
 
 const SECCIONES = [
+  {href:'#destacados', nom:'Lo más pedido'},
   {href:'#sectores', nom:'Para tu sector'},
   {href:'#proceso',  nom:'Cómo trabajamos'},
   {href:'#faq',      nom:'Preguntas'},
   {href:'#contacto', nom:'Contacto'}
 ];
+const cuantos = id => activos().filter(p=>p.cat===id).length;
+
+function elegirCat(id){
+  filtro=id; busca=''; $('#q').value='';
+  cerrarMenu();
+  pintarNav(); pintarGrid();
+  const dest=$('#catalogo');
+  if(dest && dest.scrollIntoView) dest.scrollIntoView({behavior:'smooth', block:'start'});
+}
+function abrirMenu(){
+  $('#mega').classList.add('on');
+  $('#btn-menu').setAttribute('aria-expanded','true');
+}
+function cerrarMenu(){
+  $('#mega').classList.remove('on');
+  $('#btn-menu').setAttribute('aria-expanded','false');
+}
+function alternarMenu(){
+  $('#mega').classList.contains('on') ? cerrarMenu() : abrirMenu();
+}
+
 function pintarNav(){
-  const nav = $('#catnav'); nav.innerHTML='';
-  [{id:'todo',nom:'Todo el catálogo'}, ...DB.cats].forEach(c=>{
+  const cat = DB.cats.find(c=>c.id===filtro);
+  $('#menu-act').textContent = cat ? ' · ' + cat.nom : '';
+
+  // panel desplegable
+  const g = $('#megagrid'); g.innerHTML='';
+  const todo = document.createElement('button');
+  todo.className='megaitem todo';
+  todo.setAttribute('aria-pressed', filtro==='todo');
+  todo.innerHTML=`<span class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>
+    <span><b>Todo el catálogo</b><span>${activos().length} PRODUCTOS</span></span>`;
+  todo.onclick=()=>elegirCat('todo');
+  g.appendChild(todo);
+
+  DB.cats.forEach(c=>{
     const b=document.createElement('button');
-    b.textContent=c.nom;
+    b.className='megaitem';
     b.setAttribute('aria-pressed', filtro===c.id);
-    b.onclick=()=>{
-      filtro=c.id; busca=''; $('#q').value='';
-      pintarNav(); pintarGrid();
-      $('#catalogo').scrollIntoView({behavior:'smooth', block:'start'});
-    };
-    nav.appendChild(b);
+    b.innerHTML=`<span class="ico">${ART[c.ico]||ART.flyer}</span>
+      <span><b>${esc(c.nom)}</b><span>${cuantos(c.id)} PRODUCTOS</span></span>`;
+    b.onclick=()=>elegirCat(c.id);
+    g.appendChild(b);
   });
-  const sep = document.createElement('span'); sep.className='sep'; nav.appendChild(sep);
-  SECCIONES.forEach(s=>{
-    const a = document.createElement('a');
-    a.className='main'; a.href=s.href; a.textContent=s.nom;
-    nav.appendChild(a);
+
+  // enlaces de sección: en la barra si hay sitio, y siempre dentro del panel en móvil
+  const links = s => SECCIONES.map(x=>`<a class="main" href="${x.href}">${x.nom}</a>`).join('');
+  $('#mainlinks').innerHTML = links();
+  $('#megaenlaces').innerHTML = links();
+  $$('#megaenlaces a').forEach(a=> a.onclick=cerrarMenu);
+
+  pintarFiltros();
+}
+
+/* Filtros del catálogo: mismas familias, pero repartidas en varias líneas */
+function pintarFiltros(){
+  const f = $('#filtros'); if(!f) return;
+  f.innerHTML='';
+  [{id:'todo', nom:'Todos', n:activos().length},
+   ...DB.cats.map(c=>({id:c.id, nom:c.nom, n:cuantos(c.id)}))].forEach(c=>{
+    const b=document.createElement('button');
+    b.className='filtro';
+    b.innerHTML=`${esc(c.nom)}<span class="n">${c.n}</span>`;
+    b.setAttribute('aria-pressed', filtro===c.id);
+    b.onclick=()=>{ filtro=c.id; busca=''; $('#q').value=''; pintarNav(); pintarGrid(); };
+    f.appendChild(b);
   });
 }
 function pintarCats(){
@@ -1366,7 +1473,13 @@ function dlg(titulo, cuerpo, pie=''){
 $('#overlay').onclick=cerrarTodo;
 document.addEventListener('keydown', e=>{ if(e.key==='Escape') cerrarTodo(); });
 $('#btn-cart').onclick=()=>abrirCapa('#drawer');
-$('#q').addEventListener('input', e=>{ busca=e.target.value.trim().toLowerCase(); if(busca) filtro='todo'; pintarNav(); pintarGrid(); });
+$('#btn-menu').onclick=alternarMenu;
+$('#btn-burger').onclick=alternarMenu;
+document.addEventListener('click', e=>{
+  if($('#mega').classList.contains('on') && !e.target.closest('nav.cats')) cerrarMenu();
+});
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') cerrarMenu(); });
+$('#q').addEventListener('input', e=>{ busca=e.target.value.trim().toLowerCase(); if(busca) filtro='todo'; cerrarMenu(); pintarNav(); pintarGrid(); });
 $('#f-send').onclick=()=>{
   const nom=$('#f-nom').value.trim();
   if(!nom){ $('#f-nom').focus(); toast('Necesitamos un nombre para responderte'); return; }
