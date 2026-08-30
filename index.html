@@ -302,6 +302,16 @@ nav.cats a.main:hover{color:var(--ink);border-bottom-color:var(--line)}
 .faq summary:hover{color:var(--acc)}
 .faq .resp{padding:0 44px 20px 0;font-size:15px;color:var(--ink-70);line-height:1.6}
 
+/* ---------------- cobros ---------------- */
+.pagobox{border:1.5px solid var(--ink);border-radius:var(--r);padding:16px 18px;margin-top:6px}
+.pagobox .dat{display:flex;justify-content:space-between;gap:14px;padding:9px 0;border-bottom:1px dashed var(--line);font-size:14px}
+.pagobox .dat:last-child{border-bottom:0}
+.pagobox .dat .k{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.pagobox .dat .v{font-weight:600;text-align:right;word-break:break-all}
+.pill.pag{border-color:var(--ok);color:var(--ok)}
+.pill.sen{border-color:var(--cyan);color:#0079A3}
+.pill.pen{border-color:var(--warn);color:var(--warn)}
+
 /* ---------------- capas comunes ---------------- */
 .overlay{position:fixed;inset:0;background:rgba(14,17,22,.55);z-index:190;opacity:0;pointer-events:none;transition:opacity .2s}
 .overlay.on{opacity:1;pointer-events:auto}
@@ -877,7 +887,14 @@ const DEMO = {
     horario:'L–V 9:00–14:00 · 17:00–20:00',
     razon:'Nuevo Impacto Soluciones Gráficas S.L.',
     iva:21, acento:'#E5007E', pin:'1234', reparto:'Tomelloso',
-    fb:null
+    fb:null,
+    pago:{
+      senal:50,                       // % que se pide por adelantado (0 = el total)
+      transferencia:{on:true,  iban:'ES00 0000 0000 0000 0000 0000', titular:'Nuevo Impacto Soluciones Gráficas S.L.', banco:''},
+      bizum:{on:true,  movil:''},
+      paypal:{on:false, usuario:''},   // usuario de paypal.me
+      redsys:{on:false, modo:'enlace', comercio:'', terminal:'001', endpoint:''}
+    }
   },
   cats:[
     {id:'papeleria', nom:'Papelería e imprenta', sub:'Offset · digital', ico:'flyer'},
@@ -1052,6 +1069,7 @@ try{
 ['settings','cats','opts','products','perks','pasos','tecnicas','sectores','specs','faq','orders','consultas'].forEach(k=>{
   if(DB[k]===undefined) DB[k] = clone(DEMO[k]);
 });
+if(!DB.settings.pago) DB.settings.pago = clone(DEMO.settings.pago);
 
 let guardando = null;
 function save(pintar=true){
@@ -1454,6 +1472,67 @@ function textoPresupuesto(){
   t+=`Base imponible: ${eur(base)}\nIVA ${DB.settings.iva} %: ${eur(base*DB.settings.iva/100)}\nTotal: ${eur(base*(1+DB.settings.iva/100))}\n`;
   return t;
 }
+/* ---------- Cobros ----------
+   La web no manipula dinero: enseña los datos de pago o abre la pasarela.
+   El cobro se confirma a mano en el panel salvo que se conecte Redsys. */
+function metodosPago(){
+  const p = DB.settings.pago || {};
+  const l = [];
+  if(p.transferencia && p.transferencia.on) l.push({id:'transferencia', nom:'Transferencia'});
+  if(p.bizum && p.bizum.on)                 l.push({id:'bizum',         nom:'Bizum'});
+  if(p.paypal && p.paypal.on)               l.push({id:'paypal',        nom:'PayPal'});
+  if(p.redsys && p.redsys.on)               l.push({id:'redsys',        nom:'Tarjeta'});
+  return l;
+}
+const nombrePago = id => ({transferencia:'Transferencia', bizum:'Bizum', paypal:'PayPal', redsys:'Tarjeta'}[id] || '—');
+function importeAhora(total){
+  const s = +(DB.settings.pago.senal || 0);
+  return (s > 0 && s < 100) ? Math.round(total * s / 100 * 100) / 100 : total;
+}
+/* Instrucciones que ve el cliente al terminar el pedido */
+function instruccionesPago(metodo, ref, total){
+  const p = DB.settings.pago, ahora = importeAhora(total);
+  const senal = ahora < total
+    ? `<p style="font-size:13.5px;color:var(--muted);margin-top:10px">Ahora se abona la señal de <b>${eur(ahora)}</b> (${p.senal} %). El resto, ${eur(total-ahora)}, al recoger o entregar.</p>`
+    : '';
+  if(metodo === 'transferencia'){
+    return `<div class="pagobox">
+      <div class="dat"><span class="k">Importe</span><span class="v">${eur(ahora)}</span></div>
+      <div class="dat"><span class="k">Titular</span><span class="v">${esc(p.transferencia.titular)}</span></div>
+      <div class="dat"><span class="k">IBAN</span><span class="v mono">${esc(p.transferencia.iban)}</span></div>
+      ${p.transferencia.banco ? `<div class="dat"><span class="k">Banco</span><span class="v">${esc(p.transferencia.banco)}</span></div>` : ''}
+      <div class="dat"><span class="k">Concepto</span><span class="v mono">${ref}</span></div>
+    </div>
+    <p style="font-size:13.5px;color:var(--muted);margin-top:10px">Pon la referencia en el concepto; es como localizamos tu pedido. Empezamos a producir en cuanto figure el ingreso.</p>${senal}`;
+  }
+  if(metodo === 'bizum'){
+    return `<div class="pagobox">
+      <div class="dat"><span class="k">Importe</span><span class="v">${eur(ahora)}</span></div>
+      <div class="dat"><span class="k">Bizum al</span><span class="v mono">${esc(p.bizum.movil || 'pendiente de configurar')}</span></div>
+      <div class="dat"><span class="k">Concepto</span><span class="v mono">${ref}</span></div>
+    </div>${senal}`;
+  }
+  if(metodo === 'paypal'){
+    const url = p.paypal.usuario
+      ? `https://paypal.me/${encodeURIComponent(p.paypal.usuario)}/${ahora.toFixed(2)}EUR`
+      : '';
+    return `<div class="pagobox">
+      <div class="dat"><span class="k">Importe</span><span class="v">${eur(ahora)}</span></div>
+      <div class="dat"><span class="k">Concepto</span><span class="v mono">${ref}</span></div>
+    </div>
+    ${url ? `<a class="btn pink block" style="margin-top:14px" href="${url}" target="_blank" rel="noopener">Pagar ${eur(ahora)} con PayPal</a>`
+          : '<p style="font-size:13.5px;color:var(--muted);margin-top:10px">Te enviamos el enlace de pago en cuanto revisemos el pedido.</p>'}${senal}`;
+  }
+  if(metodo === 'redsys'){
+    return `<div class="pagobox">
+      <div class="dat"><span class="k">Importe</span><span class="v">${eur(ahora)}</span></div>
+      <div class="dat"><span class="k">Referencia</span><span class="v mono">${ref}</span></div>
+    </div>
+    <p style="font-size:13.5px;color:var(--muted);margin-top:10px">Te mandamos un enlace de pago seguro del banco al correo o al móvil. Se paga con tarjeta y no pasa por nuestras manos ningún dato bancario.</p>${senal}`;
+  }
+  return '';
+}
+
 function nuevoRef(){
   const y=new Date().getFullYear();
   const n=DB.orders.filter(o=>o.id.includes(String(y))).length + 9;
@@ -1468,28 +1547,48 @@ function abrirCheckout(){
       <div class="field"><label for="c-mail">Correo</label><input id="c-mail" placeholder="tucorreo@ejemplo.es"></div>
     </div>
     <div class="field"><label for="c-ent">Entrega</label><select id="c-ent"><option>Recogida en taller</option><option>Reparto</option><option>Envío por agencia</option></select></div>
+    <div class="field"><label>Cómo quieres pagar</label><div class="chips" id="c-pago"></div></div>
     <div class="field"><label for="c-not">Notas</label><textarea id="c-not" placeholder="Fecha límite, colores, tallas…"></textarea></div>
-    <div class="sumrow total" style="margin-top:4px"><span>Total con IVA</span><span>${eur(base*(1+DB.settings.iva/100))}</span></div>`,
+    <div class="sumrow total" style="margin-top:4px"><span>Total con IVA</span><span>${eur(base*(1+DB.settings.iva/100))}</span></div>
+    ${importeAhora(base*(1+DB.settings.iva/100)) < base*(1+DB.settings.iva/100)
+      ? `<div class="sumrow" style="margin-top:6px"><span>A abonar ahora (señal ${DB.settings.pago.senal} %)</span><span style="font-weight:600;color:var(--ink)">${eur(importeAhora(base*(1+DB.settings.iva/100)))}</span></div>` : ''}`,
     `<span class="mono" style="font-size:12px;color:var(--muted)">${cesta.length} línea${cesta.length>1?'s':''}</span>
      <button class="btn pink" id="c-ok">Enviar pedido</button>`);
+  // métodos de pago disponibles
+  const met = metodosPago();
+  let metodo = met.length ? met[0].id : '';
+  const cw = $('#c-pago');
+  if(!met.length){ cw.innerHTML='<span style="font-size:13.5px;color:var(--muted)">Te confirmamos la forma de pago al presupuestar.</span>'; }
+  met.forEach((m,i)=>{
+    const b=document.createElement('button');
+    b.type='button'; b.className='chip'; b.textContent=m.nom;
+    b.setAttribute('aria-pressed', i===0);
+    b.onclick=()=>{ metodo=m.id; [...cw.children].forEach((x,j)=>x.setAttribute('aria-pressed', j===i)); };
+    cw.appendChild(b);
+  });
+
   $('#c-ok').onclick = ()=>{
     const nom=$('#c-nom').value.trim(), tel=$('#c-tel').value.trim();
     if(!nom || !tel){ toast('Necesitamos nombre y teléfono'); return; }
     const ref=nuevoRef();
+    const total=Math.round(base*(1+DB.settings.iva/100)*100)/100;
     DB.orders.unshift({
       id:ref, fecha:hoy(), cliente:nom, tel, email:$('#c-mail').value.trim(),
       entrega:$('#c-ent').value, notas:$('#c-not').value.trim(), estado:'Nuevo',
-      lineas:clone(cesta), base:Math.round(base*100)/100
+      lineas:clone(cesta), base:Math.round(base*100)/100,
+      pago:{metodo, estado:'Pendiente', pedido:importeAhora(total), enlace:''}
     });
     save(false);
     cesta=[]; saveCesta(); pintarCesta();
     dlg('Pedido recibido', `
-      <div style="text-align:center;padding:10px 0 4px">
+      <div style="text-align:center;padding:6px 0 4px">
         <div style="width:54px;height:54px;border-radius:50%;background:var(--ok);display:grid;place-items:center;margin:0 auto 16px">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
         <h3 style="font-size:22px">Tu referencia es ${ref}</h3>
-        <p style="color:var(--muted);margin-top:10px;font-size:14.5px">Lo revisamos y te confirmamos plazo hoy mismo si es día laborable. Guarda la referencia para preguntar por él.</p>
-      </div>`, `<button class="btn block" data-close>Cerrar</button>`);
+        <p style="color:var(--muted);margin-top:10px;font-size:14.5px">Lo revisamos y te confirmamos plazo hoy mismo si es día laborable.</p>
+      </div>
+      ${metodo ? `<h4 style="margin-top:20px;font-size:15px">Cómo pagar · ${nombrePago(metodo)}</h4>${instruccionesPago(metodo, ref, total)}` : ''}`,
+      `<button class="btn block" data-close>Cerrar</button>`);
     enlazarCierres();
   };
 }
@@ -1591,6 +1690,10 @@ $('#f-send').onclick=()=>{
    9. PANEL DE ADMINISTRACIÓN
    ============================================================ */
 const ESTADOS=['Nuevo','Presupuestado','En producción','Entregado','Cancelado'];
+const PAGOS=['Pendiente','Señal cobrada','Pagado','Devuelto'];
+const PAGPILL={'Pendiente':'pen','Señal cobrada':'sen','Pagado':'pag','Devuelto':'can'};
+const pagoDe = o => o.pago || {metodo:'', estado:'Pendiente', pedido:0, enlace:''};
+const totalCon = o => Math.round(o.base*(1+DB.settings.iva/100)*100)/100;
 const ESTPILL={'Nuevo':'new','Presupuestado':'quo','En producción':'pro','Entregado':'don','Cancelado':'can'};
 let seccion='panel', admBusca='', admCat='todo', admEst='todo';
 
@@ -1623,6 +1726,7 @@ const SECS=[
   {id:'panel', nom:'Resumen'},
   {id:'pedidos', nom:'Pedidos'},
   {id:'consultas', nom:'Consultas'},
+  {id:'cobros', nom:'Cobros'},
   {g:'Catálogo'},
   {id:'productos', nom:'Productos'},
   {id:'cats', nom:'Categorías'},
@@ -1649,8 +1753,9 @@ function admRender(){
     b.onclick=()=>{ seccion=s.id; admRender(); };
     nav.appendChild(b);
   });
-  const pinta = {panel:secPanel, pedidos:secPedidos, consultas:secConsultas, productos:secProductos,
-    cats:secCats, opciones:secOpciones, contenido:secContenido, ajustes:secAjustes}[seccion] || secPanel;
+  const pinta = {panel:secPanel, pedidos:secPedidos, consultas:secConsultas, cobros:secCobros,
+    productos:secProductos, cats:secCats, opciones:secOpciones, contenido:secContenido,
+    ajustes:secAjustes}[seccion] || secPanel;
   try{ pinta(); }
   catch(err){ avisarFallo('Al pintar "'+seccion+'": '+err.message); }
 }
@@ -1701,10 +1806,11 @@ function secPanel(){
   DB.orders.forEach(o=>o.lineas.forEach(l=>cuenta[l.nom]=(cuenta[l.nom]||0)+1));
   const top=Object.entries(cuenta).sort((a,b)=>b[1]-a[1]).slice(0,5);
   B.innerHTML = head('Resumen','Cómo va el negocio ahora mismo.') + `
-    <div class="kpis">
+    <div class="kpis" style="grid-template-columns:repeat(5,1fr)">
       <div class="kpi"><div class="k">Pedidos nuevos</div><div class="v">${DB.orders.filter(o=>o.estado==='Nuevo').length}</div><div class="s">Sin presupuestar</div></div>
       <div class="kpi"><div class="k">En producción</div><div class="v">${DB.orders.filter(o=>o.estado==='En producción').length}</div><div class="s">En máquina o taller</div></div>
       <div class="kpi"><div class="k">Facturado este mes</div><div class="v">${eur(fact)}</div><div class="s">Base, sin IVA</div></div>
+      <div class="kpi"><div class="k">Pendiente de cobro</div><div class="v">${eur(DB.orders.filter(o=>o.estado!=='Cancelado' && pagoDe(o).estado==='Pendiente').reduce((s,o)=>s+totalCon(o),0))}</div><div class="s">IVA incluido</div></div>
       <div class="kpi"><div class="k">Catálogo activo</div><div class="v">${activos().length}<span style="font-size:16px;color:var(--muted)">/${DB.products.length}</span></div><div class="s">Productos visibles</div></div>
     </div>
     <div class="grid2">
@@ -1733,16 +1839,18 @@ function secPedidos(){
       <span class="mono" style="font-size:12px;color:var(--muted);margin-left:auto">${lista.length} pedidos</span>
     </div>
     <div class="panel"><table class="adm">
-      <thead><tr><th>Referencia</th><th>Fecha</th><th>Cliente</th><th>Líneas</th><th>Estado</th><th style="text-align:right">Base</th><th></th></tr></thead>
+      <thead><tr><th>Referencia</th><th>Fecha</th><th>Cliente</th><th>Líneas</th><th>Estado</th><th>Cobro</th><th style="text-align:right">Total</th><th></th></tr></thead>
       <tbody>${lista.map(o=>`
         <tr><td class="mono" style="font-size:12.5px;font-weight:600">${o.id}</td>
         <td class="mono" style="font-size:12.5px;color:var(--muted)">${o.fecha.split('-').reverse().join('/')}</td>
         <td><b>${esc(o.cliente)}</b><br><span style="font-size:12.5px;color:var(--muted)">${esc(o.tel)}</span></td>
         <td style="font-size:13px">${o.lineas.map(l=>esc(l.nom)).join('<br>')}</td>
         <td><span class="pill ${ESTPILL[o.estado]}">${o.estado}</span></td>
-        <td style="text-align:right;font-weight:600">${eur(o.base)}</td>
+        <td><span class="pill ${PAGPILL[pagoDe(o).estado]||'pen'}">${pagoDe(o).estado}</span>
+            ${pagoDe(o).metodo?`<br><span class="mono" style="font-size:10.5px;color:var(--muted)">${nombrePago(pagoDe(o).metodo)}</span>`:''}</td>
+        <td style="text-align:right;font-weight:600">${eur(totalCon(o))}</td>
         <td><div class="rowacts"><button class="ibtn" data-ver="${o.id}">Abrir</button></div></td></tr>`).join('')
-        || '<tr><td colspan="7" style="padding:30px;text-align:center;color:var(--muted)">No hay pedidos con ese filtro.</td></tr>'}
+        || '<tr><td colspan="8" style="padding:30px;text-align:center;color:var(--muted)">No hay pedidos con ese filtro.</td></tr>'}
       </tbody></table></div>`;
   $('#pb').oninput=e=>{ admBusca=e.target.value.toLowerCase(); secPedidos(); };
   $('#pe').onchange=e=>{ admEst=e.target.value; secPedidos(); };
@@ -1764,12 +1872,27 @@ function verPedido(id){
     <div class="sumrow"><span>Base</span><span>${eur(o.base)}</span></div>
     <div class="sumrow"><span>IVA ${DB.settings.iva} %</span><span>${eur(iva)}</span></div>
     <div class="sumrow total"><span>Total</span><span>${eur(o.base+iva)}</span></div>
-    <div class="field" style="margin-top:18px"><label for="o-est">Estado del pedido</label>
-      <select id="o-est">${ESTADOS.map(e=>`<option ${o.estado===e?'selected':''}>${e}</option>`).join('')}</select></div>`,
+    <div class="grid2" style="margin-top:18px">
+      <div class="field"><label for="o-est">Estado del pedido</label>
+        <select id="o-est">${ESTADOS.map(e=>`<option ${o.estado===e?'selected':''}>${e}</option>`).join('')}</select></div>
+      <div class="field"><label for="o-pag">Cobro</label>
+        <select id="o-pag">${PAGOS.map(e=>`<option ${pagoDe(o).estado===e?'selected':''}>${e}</option>`).join('')}</select>
+        <div class="hint">${pagoDe(o).metodo?nombrePago(pagoDe(o).metodo):'sin método'}${pagoDe(o).pedido&&pagoDe(o).pedido<totalCon(o)?` · señal de ${eur(pagoDe(o).pedido)}`:''}</div></div>
+    </div>
+    ${pagoDe(o).metodo==='redsys' || pagoDe(o).metodo==='paypal' ? `
+    <div class="field"><label for="o-enl">Enlace de pago enviado al cliente</label>
+      <input id="o-enl" value="${esc(pagoDe(o).enlace||'')}" placeholder="Pega aquí el enlace generado en el TPV o en PayPal" style="font-family:var(--f-mono);font-size:12.5px">
+      <div class="hint">Guárdalo para saber qué se le mandó y poder reenviarlo.</div></div>` : ''}`,
     `<button class="ibtn del" id="o-del">Eliminar pedido</button>
-     <div style="display:flex;gap:8px"><button class="btn ghost sm" id="o-copy">Copiar</button><button class="btn pink sm" id="o-save">Guardar estado</button></div>`);
+     <div style="display:flex;gap:8px"><button class="btn ghost sm" id="o-cobro">Copiar datos de pago</button><button class="btn ghost sm" id="o-copy">Copiar pedido</button><button class="btn pink sm" id="o-save">Guardar</button></div>`);
   $('#dlg-foot').style.justifyContent='space-between';
-  $('#o-save').onclick=()=>{ o.estado=$('#o-est').value; save(false); cerrarTodo(); admRender(); toast(`${o.id} · ${o.estado}`); };
+  $('#o-save').onclick=()=>{
+    o.estado=$('#o-est').value;
+    o.pago = Object.assign(pagoDe(o), {estado:$('#o-pag').value});
+    const e=$('#o-enl'); if(e) o.pago.enlace=e.value.trim();
+    save(false); cerrarTodo(); admRender();
+    toast(`${o.id} · ${o.estado} · ${o.pago.estado}`);
+  };
   $('#o-del').onclick=()=>{
     confirmar('Eliminar pedido',
       `Se va a borrar <b>${o.id}</b> de ${esc(o.cliente)}, por ${eur(o.base)}. Esto no se puede deshacer.`,
@@ -1777,12 +1900,101 @@ function verPedido(id){
         DB.orders=DB.orders.filter(x=>x.id!==o.id); save(false); admRender(); toast('Pedido eliminado');
       });
   };
+  $('#o-cobro').onclick=async()=>{
+    const p=pagoDe(o), s=DB.settings.pago, imp=p.pedido||totalCon(o);
+    let t=`Pedido ${o.id} — ${DB.settings.marca}\nImporte a abonar: ${eur(imp)}\n\n`;
+    if(p.metodo==='transferencia') t+=`Transferencia\nTitular: ${s.transferencia.titular}\nIBAN: ${s.transferencia.iban}\nConcepto: ${o.id}`;
+    else if(p.metodo==='bizum')    t+=`Bizum al ${s.bizum.movil}\nConcepto: ${o.id}`;
+    else if(p.metodo==='paypal')   t+=s.paypal.usuario?`PayPal: https://paypal.me/${s.paypal.usuario}/${imp.toFixed(2)}EUR`:`PayPal: te enviamos el enlace`;
+    else if(p.metodo==='redsys')   t+=p.enlace?`Pago con tarjeta: ${p.enlace}`:`Pago con tarjeta: enlace pendiente de generar en el TPV`;
+    else t+=`Forma de pago pendiente de acordar.`;
+    try{ await navigator.clipboard.writeText(t); toast('Datos de pago copiados'); }catch(e){ toast('No se ha podido copiar'); }
+  };
   $('#o-copy').onclick=async()=>{
     let t=`${o.id} · ${o.cliente} · ${o.tel}\n${o.entrega} · ${o.fecha}\n\n`;
     o.lineas.forEach(l=>{ t+=`${l.nom}\n  ${l.cant} · ${l.especs}\n  ${eur(l.precio)}\n`; });
     t+=`\nBase ${eur(o.base)} · IVA ${eur(iva)} · Total ${eur(o.base+iva)}`;
     try{ await navigator.clipboard.writeText(t); toast('Pedido copiado'); }catch(e){}
   };
+}
+
+
+/* ---- Cobros: qué formas de pago se ofrecen y con qué datos ---- */
+function secCobros(){
+  const p = DB.settings.pago;
+  const sw = (ruta, on) => `<label style="display:flex;gap:9px;align-items:center;font-size:14px;font-weight:600">
+      <input type="checkbox" data-p="${ruta}" ${on?'checked':''} style="width:17px;height:17px"> Activado en la web</label>`;
+  B.innerHTML = head('Cobros','Qué formas de pago ve el cliente al terminar el pedido, y con qué datos.') + `
+    <div class="note"><b>Cómo funciona</b>La web no toca el dinero: enseña los datos o abre la pasarela. Transferencia y Bizum los confirmas tú en el panel cuando veas el ingreso. PayPal y Redsys pueden cobrar solos, pero Redsys necesita además la pieza de servidor.</div>
+
+    <div class="panel"><h3>Señal</h3><div class="pad">
+      <div class="grid2">
+        <div class="field"><label>Qué se pide por adelantado</label>
+          <select data-p="senal">
+            <option value="0" ${p.senal==0?'selected':''}>El importe completo</option>
+            <option value="30" ${p.senal==30?'selected':''}>Señal del 30 %</option>
+            <option value="50" ${p.senal==50?'selected':''}>Señal del 50 %</option>
+            <option value="100" ${p.senal==100?'selected':''}>El importe completo (100 %)</option>
+          </select>
+          <div class="hint">Lo normal en el gremio es señal del 50 % al confirmar y el resto al entregar.</div></div>
+      </div>
+    </div></div>
+
+    <div class="panel"><h3>Transferencia bancaria</h3><div class="pad">
+      ${sw('transferencia.on', p.transferencia.on)}
+      <div class="grid2" style="margin-top:14px">
+        <div class="field"><label>Titular de la cuenta</label><input data-p="transferencia.titular" value="${esc(p.transferencia.titular)}"></div>
+        <div class="field"><label>Banco</label><input data-p="transferencia.banco" value="${esc(p.transferencia.banco)}" placeholder="Opcional"></div>
+      </div>
+      <div class="field"><label>IBAN</label><input data-p="transferencia.iban" value="${esc(p.transferencia.iban)}" style="font-family:var(--f-mono)">
+        <div class="hint">Tiene que ser la cuenta de la empresa, a nombre del mismo CIF que factura.</div></div>
+    </div></div>
+
+    <div class="panel"><h3>Bizum</h3><div class="pad">
+      ${sw('bizum.on', p.bizum.on)}
+      <div class="field" style="margin-top:14px;max-width:260px"><label>Móvil que recibe el Bizum</label>
+        <input data-p="bizum.movil" value="${esc(p.bizum.movil)}" placeholder="6XX XX XX XX" style="font-family:var(--f-mono)">
+        <div class="hint">Bizum de particular tiene límites diarios y mensuales; para volumen, pide a tu banco el Bizum de comercio.</div></div>
+    </div></div>
+
+    <div class="panel"><h3>PayPal</h3><div class="pad">
+      ${sw('paypal.on', p.paypal.on)}
+      <div class="field" style="margin-top:14px;max-width:340px"><label>Usuario de PayPal.me</label>
+        <input data-p="paypal.usuario" value="${esc(p.paypal.usuario)}" placeholder="nuevoimpacto" style="font-family:var(--f-mono)">
+        <div class="hint">Se genera un enlace <span class="mono">paypal.me/usuario/importe</span> con el importe ya puesto. Necesita cuenta PayPal Business.</div></div>
+      ${p.paypal.usuario ? `<p style="font-size:13px;color:var(--muted)">Ejemplo: <span class="mono">https://paypal.me/${esc(p.paypal.usuario)}/120.00EUR</span></p>` : ''}
+    </div></div>
+
+    <div class="panel"><h3>Redsys · TPV virtual del banco</h3><div class="pad">
+      ${sw('redsys.on', p.redsys.on)}
+      <div class="grid2" style="margin-top:14px">
+        <div class="field"><label>Modo</label>
+          <select data-p="redsys.modo">
+            <option value="enlace" ${p.redsys.modo==='enlace'?'selected':''}>Enlace de pago (Paygold)</option>
+            <option value="integrado" ${p.redsys.modo==='integrado'?'selected':''}>Integrado en la web</option>
+          </select>
+          <div class="hint">Con "enlace" generas el cobro en el panel del banco y se lo mandas al cliente: no hace falta servidor. "Integrado" cobra dentro de la web, pero exige la función de firma.</div></div>
+        <div class="field"><label>Número de comercio (FUC)</label><input data-p="redsys.comercio" value="${esc(p.redsys.comercio)}" placeholder="999008881" style="font-family:var(--f-mono)"></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label>Terminal</label><input data-p="redsys.terminal" value="${esc(p.redsys.terminal)}" style="font-family:var(--f-mono)"></div>
+        <div class="field"><label>Dirección de la función de firma</label><input data-p="redsys.endpoint" value="${esc(p.redsys.endpoint)}" placeholder="https://tuweb.netlify.app/.netlify/functions/redsys" style="font-family:var(--f-mono);font-size:12.5px"></div>
+      </div>
+      <div class="note" style="margin-bottom:0"><b>La clave secreta no va aquí</b>Redsys firma cada pago con una clave del banco. Si la pusieras en esta web, cualquiera podría leerla en el código fuente y cobrar en tu nombre. Esa clave vive solo en el servidor de la función.</div>
+    </div></div>`;
+
+  // enlaza los campos con rutas tipo "transferencia.iban"
+  B.querySelectorAll('[data-p]').forEach(inp=>{
+    const ev = inp.type==='checkbox' ? 'change' : 'change';
+    inp.addEventListener(ev, e=>{
+      const t=e.target, ruta=t.dataset.p.split('.');
+      let obj=DB.settings.pago;
+      while(ruta.length>1) obj=obj[ruta.shift()];
+      obj[ruta[0]] = t.type==='checkbox' ? t.checked : (t.dataset.p==='senal' ? +t.value : t.value);
+      save(false);
+      if(t.type==='checkbox' || t.dataset.p==='senal' || t.dataset.p==='paypal.usuario') secCobros();
+    });
+  });
 }
 
 /* ---- Consultas ---- */
